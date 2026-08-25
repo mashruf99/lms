@@ -1,3 +1,4 @@
+//middlewares.ts
 import type { Core } from '@strapi/strapi';
 
 const config: Core.Config.Middlewares = [
