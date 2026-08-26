@@ -8,6 +8,10 @@ export default {
         policies: [],
         auth: {},
       },
+      info: {
+        apiName: 'profile',
+        type: 'content-api',
+      },
     },
   ],
 };
