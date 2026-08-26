@@ -10,16 +10,16 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const strapiRes = await fetch(`${STRAPI_URL}/api/users/me?populate=role`, {
+    const res = await fetch(`${STRAPI_URL}/api/my-profile`, {
       headers: { Authorization: `Bearer ${jwt}` },
     });
 
-    if (!strapiRes.ok) {
+    if (!res.ok) {
       return NextResponse.json({ user: null }, { status: 200 });
     }
 
-    const user = await strapiRes.json();
-    return NextResponse.json({ user });
+    const data = await res.json();
+    return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json({ user: null }, { status: 200 });
   }
