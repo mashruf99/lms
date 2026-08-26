@@ -96,6 +96,9 @@ function ManageCoursesContent() {
                 <Link href={`/courses/manage/${course.documentId}`} className="text-sm underline">
                   Manage Lessons
                 </Link>
+                <Link href={`/courses/manage/${course.documentId}/quiz`} className="text-sm underline">
+                  Manage Quiz
+                </Link>
                 <button
                   onClick={() => handleDelete(course.documentId)}
                   className="text-sm text-red-600 underline"
