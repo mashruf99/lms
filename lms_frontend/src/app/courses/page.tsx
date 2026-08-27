@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -100,7 +101,9 @@ function BrowseCoursesContent() {
 export default function BrowseCoursesPage() {
   return (
     <ProtectedRoute allowedRoles={['Student']}>
-      <BrowseCoursesContent />
+      <AppShell>
+        <BrowseCoursesContent />
+      </AppShell>
     </ProtectedRoute>
   );
 }

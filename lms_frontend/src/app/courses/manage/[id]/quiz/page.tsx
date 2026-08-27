@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
 
 type Question = {
@@ -246,7 +247,9 @@ function ManageQuizContent() {
 export default function ManageQuizPage() {
   return (
     <ProtectedRoute allowedRoles={['Admin', 'Content Manager', 'Instructor']}>
-      <ManageQuizContent />
+      <AppShell>
+        <ManageQuizContent />
+      </AppShell>
     </ProtectedRoute>
   );
 }

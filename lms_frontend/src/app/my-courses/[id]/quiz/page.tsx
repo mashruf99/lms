@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
 
 type Question = {
@@ -169,7 +170,9 @@ function TakeQuizContent() {
 export default function TakeQuizPage() {
   return (
     <ProtectedRoute allowedRoles={['Student']}>
-      <TakeQuizContent />
+      <AppShell>
+        <TakeQuizContent />
+      </AppShell>
     </ProtectedRoute>
   );
 }

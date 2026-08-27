@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
 
 type Lesson = {
@@ -90,9 +92,9 @@ function CourseViewerContent() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <a href="/my-courses" className="text-sm underline mb-4 inline-block">
+      <Link href="/my-courses" className="text-sm underline mb-4 inline-block">
         ← Back to My Courses
-      </a>
+      </Link>
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-2xl font-semibold">{courseTitle}</h1>
         <a href={`/my-courses/${courseId}/quiz`} className="text-sm underline">
@@ -170,7 +172,9 @@ function CourseViewerContent() {
 export default function CourseViewerPage() {
   return (
     <ProtectedRoute allowedRoles={['Student']}>
-      <CourseViewerContent />
+      <AppShell>
+        <CourseViewerContent />
+      </AppShell>
     </ProtectedRoute>
   );
 }

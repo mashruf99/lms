@@ -37,7 +37,6 @@ export default async (
       return course?.owner?.id === user.id;
     }
 
-    // Update/delete on an existing lesson — check via its parent course's owner
     const lesson = await strapi.documents('api::lesson.lesson').findOne({
       documentId: lessonId,
       populate: { course: { populate: ['owner'] } },

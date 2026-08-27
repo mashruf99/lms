@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+import PublicHeader from '@/components/layout/PublicHeader';
+import AppShell from '@/components/layout/AppShell';
+import { useAuth } from '@/context/AuthContext';
 
 type BlogPost = {
   id: number;
@@ -20,7 +23,7 @@ function extractText(blocks: any): string {
     .join('\n');
 }
 
-export default function BlogPostPage() {
+function PostBody() {
   const params = useParams();
   const postId = params.id as string;
 
@@ -43,22 +46,52 @@ export default function BlogPostPage() {
     load();
   }, [postId]);
 
-  if (loading) return <p className="p-8">Loading...</p>;
-  if (notFound || !post) return <p className="p-8">Post not found.</p>;
-
   return (
     <div className="p-8 max-w-2xl mx-auto">
-      <a href="/blog" className="text-sm underline mb-4 inline-block">
-        ← Back to Blog
-      </a>
-      <h1 className="text-2xl font-semibold mb-2">{post.title}</h1>
-      <p className="text-xs text-gray-500 mb-6">
-        {new Date(post.createdAt).toLocaleDateString()}
-      </p>
-      {post.coverImageUrl && (
-        <p className="text-sm text-gray-600 mb-4">Cover: {post.coverImageUrl}</p>
+      {loading ? (
+        <p className="text-gray-500">Loading...</p>
+      ) : notFound || !post ? (
+        <p className="text-gray-500">Post not found.</p>
+      ) : (
+        <>
+          <a href="/blog" className="text-sm underline mb-4 inline-block text-gray-600">
+            ← Back to Blog
+          </a>
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+            <h1 className="text-2xl font-semibold mb-2 text-gray-900">{post.title}</h1>
+            <p className="text-xs text-gray-500 mb-6">
+              {new Date(post.createdAt).toLocaleDateString()}
+            </p>
+            {post.coverImageUrl && (
+              <p className="text-sm text-gray-600 mb-4">Cover: {post.coverImageUrl}</p>
+            )}
+            <p className="whitespace-pre-wrap text-gray-800">{extractText(post.body)}</p>
+          </div>
+        </>
       )}
-      <p className="whitespace-pre-wrap">{extractText(post.body)}</p>
+    </div>
+  );
+}
+
+export default function BlogPostPage() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (user) {
+    return (
+      <AppShell>
+        <PostBody />
+      </AppShell>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <PublicHeader />
+      <PostBody />
     </div>
   );
 }

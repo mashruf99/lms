@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
 
 type BlogPost = {
@@ -243,7 +244,9 @@ function ManageBlogContent() {
 export default function ManageBlogPage() {
   return (
     <ProtectedRoute allowedRoles={['Admin', 'Content Manager']}>
-      <ManageBlogContent />
+      <AppShell>
+        <ManageBlogContent />
+      </AppShell>
     </ProtectedRoute>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
 
 type Lesson = {
@@ -275,7 +276,9 @@ function ManageLessonsContent() {
 export default function ManageLessonsPage() {
   return (
     <ProtectedRoute allowedRoles={['Admin', 'Content Manager', 'Instructor']}>
-      <ManageLessonsContent />
+      <AppShell>
+        <ManageLessonsContent />
+      </AppShell>
     </ProtectedRoute>
   );
 }

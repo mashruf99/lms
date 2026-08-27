@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import PublicOnlyRoute from '@/components/auth/PublicOnlyRoute';
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -34,7 +35,7 @@ export default function LoginPage() {
       }
 
       await refetch();
-      router.push('/');
+      router.push('/dashboard');
     } catch (err) {
       setError('Something went wrong');
       setLoading(false);
@@ -42,30 +43,30 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold mb-6">Log in</h1>
+    <div className="flex min-h-screen items-center justify-center px-4 bg-gray-50">
+      <div className="w-full max-w-sm bg-white border border-gray-200 rounded-xl shadow-sm p-8">
+        <h1 className="text-2xl font-semibold mb-6 text-gray-900">Log in</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="block text-sm font-medium mb-1 text-gray-700">Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-shadow"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label className="block text-sm font-medium mb-1 text-gray-700">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-shadow"
             />
           </div>
 
@@ -74,19 +75,27 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-black text-white rounded px-4 py-2 disabled:opacity-50"
+            className="bg-gray-900 text-white rounded-md px-4 py-2 hover:bg-gray-800 transition-colors disabled:opacity-50 shadow-sm"
           >
             {loading ? 'Logging in...' : 'Log in'}
           </button>
         </form>
 
-        <p className="text-sm mt-4">
+        <p className="text-sm mt-4 text-gray-600">
           Don&apos;t have an account?{' '}
-          <a href="/signup" className="underline">
+          <a href="/signup" className="underline text-gray-900">
             Sign up
           </a>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <PublicOnlyRoute>
+      <LoginForm />
+    </PublicOnlyRoute>
   );
 }
