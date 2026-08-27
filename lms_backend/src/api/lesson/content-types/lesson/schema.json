@@ -35,6 +35,9 @@
       "relation": "oneToMany",
       "target": "api::lesson-progress.lesson-progress",
       "mappedBy": "lesson"
+    },
+    "imageUrl": {
+      "type": "string"
     }
   }
 }

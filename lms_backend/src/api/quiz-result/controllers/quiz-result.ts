@@ -2,6 +2,9 @@
  * quiz-result controller
  */
 import { factories } from '@strapi/strapi';
+import { errors } from '@strapi/utils';
+
+const { ApplicationError, ForbiddenError } = errors;
 
 export default factories.createCoreController('api::quiz-result.quiz-result', ({ strapi }) => ({
   async submit(ctx: any) {
@@ -18,6 +21,33 @@ export default factories.createCoreController('api::quiz-result.quiz-result', ({
       ctx.status = 400;
       ctx.body = { error: 'quizId and answers are required' };
       return;
+    }
+
+    const quiz = await strapi.db.query('api::quiz.quiz').findOne({
+      where: { id: quizId },
+      populate: { course: true },
+    });
+
+    if (!quiz) {
+      ctx.status = 404;
+      ctx.body = { error: 'Quiz not found' };
+      return;
+    }
+
+    const enrollment = await strapi.db.query('api::enrollment.enrollment').findMany({
+      where: { student: user.id, course: quiz.course?.id },
+    });
+
+    if (enrollment.length === 0) {
+      throw new ForbiddenError('You must be enrolled in this course to take this quiz');
+    }
+
+    const existingResult = await strapi.db.query('api::quiz-result.quiz-result').findMany({
+      where: { student: user.id, quiz: quizId },
+    });
+
+    if (existingResult.length > 0) {
+      throw new ApplicationError('You have already taken this quiz');
     }
 
     const questions = await strapi.db.query('api::question.question').findMany({

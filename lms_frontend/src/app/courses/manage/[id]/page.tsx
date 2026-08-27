@@ -11,6 +11,7 @@ type Lesson = {
   documentId: string;
   title: string;
   videoUrl?: string;
+  imageUrl?: string;
   order?: number;
   content?: any;
 };
@@ -37,6 +38,7 @@ function ManageLessonsContent() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [order, setOrder] = useState('');
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -46,6 +48,7 @@ function ManageLessonsContent() {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [editVideoUrl, setEditVideoUrl] = useState('');
+  const [editImageUrl, setEditImageUrl] = useState('');
   const [editOrder, setEditOrder] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -79,6 +82,7 @@ function ManageLessonsContent() {
           title,
           content: toBlocks(content),
           videoUrl: videoUrl || null,
+          imageUrl: imageUrl || null,
           order: order ? Number(order) : null,
           course: courseId,
         },
@@ -95,6 +99,7 @@ function ManageLessonsContent() {
     setTitle('');
     setContent('');
     setVideoUrl('');
+    setImageUrl('');
     setOrder('');
     setCreating(false);
     await loadData();
@@ -111,6 +116,7 @@ function ManageLessonsContent() {
     setEditTitle(lesson.title);
     setEditContent(extractText(lesson.content));
     setEditVideoUrl(lesson.videoUrl ?? '');
+    setEditImageUrl(lesson.imageUrl ?? '');
     setEditOrder(lesson.order != null ? String(lesson.order) : '');
   };
 
@@ -125,6 +131,7 @@ function ManageLessonsContent() {
           title: editTitle,
           content: toBlocks(editContent),
           videoUrl: editVideoUrl || null,
+          imageUrl: editImageUrl || null,
           order: editOrder ? Number(editOrder) : null,
         },
       }),
@@ -146,47 +153,54 @@ function ManageLessonsContent() {
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
-      <a href="/courses/manage" className="text-sm underline mb-4 inline-block">
+      <a href="/courses/manage" className="text-sm underline mb-4 inline-block text-gray-600">
         ← Back to Courses
       </a>
-      <h1 className="text-2xl font-semibold mb-6">
+      <h1 className="text-2xl font-semibold mb-6 text-gray-900">
         Lessons — {course?.title ?? 'Course'}
       </h1>
 
-      <form onSubmit={handleCreate} className="flex flex-col gap-3 mb-8 border rounded p-4">
+      <form onSubmit={handleCreate} className="flex flex-col gap-3 mb-8 bg-white border border-gray-200 rounded-xl shadow-sm p-4">
         <input
           type="text"
           required
           placeholder="Lesson title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="border rounded px-3 py-2"
+          className="border border-gray-300 rounded-md px-3 py-2"
         />
         <textarea
           placeholder="Lesson content (text)"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="border rounded px-3 py-2"
+          className="border border-gray-300 rounded-md px-3 py-2"
           rows={3}
         />
         <input
           type="text"
-          placeholder="Video URL (optional)"
+          placeholder="Video URL (YouTube link or direct .mp4 link, optional)"
           value={videoUrl}
           onChange={(e) => setVideoUrl(e.target.value)}
-          className="border rounded px-3 py-2"
+          className="border border-gray-300 rounded-md px-3 py-2"
+        />
+        <input
+          type="text"
+          placeholder="Image URL (optional)"
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
+          className="border border-gray-300 rounded-md px-3 py-2"
         />
         <input
           type="number"
           placeholder="Order (e.g. 1, 2, 3)"
           value={order}
           onChange={(e) => setOrder(e.target.value)}
-          className="border rounded px-3 py-2"
+          className="border border-gray-300 rounded-md px-3 py-2"
         />
         <button
           type="submit"
           disabled={creating}
-          className="bg-black text-white rounded px-4 py-2 disabled:opacity-50 self-start"
+          className="bg-gray-900 text-white rounded-md px-4 py-2 hover:bg-gray-800 transition-colors disabled:opacity-50 self-start shadow-sm"
         >
           {creating ? 'Adding...' : 'Add Lesson'}
         </button>
@@ -199,17 +213,17 @@ function ManageLessonsContent() {
         <ul className="flex flex-col gap-3">
           {lessons.map((lesson) =>
             editingId === lesson.documentId ? (
-              <li key={lesson.id} className="border rounded p-4 flex flex-col gap-3 bg-gray-50">
+              <li key={lesson.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
                 <input
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="border rounded px-3 py-2"
+                  className="border border-gray-300 rounded-md px-3 py-2"
                 />
                 <textarea
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="border rounded px-3 py-2"
+                  className="border border-gray-300 rounded-md px-3 py-2"
                   rows={3}
                 />
                 <input
@@ -217,32 +231,39 @@ function ManageLessonsContent() {
                   placeholder="Video URL"
                   value={editVideoUrl}
                   onChange={(e) => setEditVideoUrl(e.target.value)}
-                  className="border rounded px-3 py-2"
+                  className="border border-gray-300 rounded-md px-3 py-2"
+                />
+                <input
+                  type="text"
+                  placeholder="Image URL"
+                  value={editImageUrl}
+                  onChange={(e) => setEditImageUrl(e.target.value)}
+                  className="border border-gray-300 rounded-md px-3 py-2"
                 />
                 <input
                   type="number"
                   placeholder="Order"
                   value={editOrder}
                   onChange={(e) => setEditOrder(e.target.value)}
-                  className="border rounded px-3 py-2"
+                  className="border border-gray-300 rounded-md px-3 py-2"
                 />
                 <div className="flex gap-3">
                   <button
                     onClick={() => saveEdit(lesson.documentId)}
                     disabled={saving}
-                    className="bg-black text-white rounded px-4 py-2 disabled:opacity-50"
+                    className="bg-gray-900 text-white rounded-md px-4 py-2 hover:bg-gray-800 transition-colors disabled:opacity-50"
                   >
                     {saving ? 'Saving...' : 'Save'}
                   </button>
-                  <button onClick={cancelEdit} className="underline">
+                  <button onClick={cancelEdit} className="underline text-gray-600">
                     Cancel
                   </button>
                 </div>
               </li>
             ) : (
-              <li key={lesson.id} className="border rounded px-4 py-3 flex justify-between items-start">
+              <li key={lesson.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm flex justify-between items-start">
                 <div>
-                  <p className="font-medium">
+                  <p className="font-medium text-gray-900">
                     {lesson.order != null && `${lesson.order}. `}
                     {lesson.title}
                   </p>
@@ -250,11 +271,14 @@ function ManageLessonsContent() {
                     <p className="text-sm text-gray-600 mt-1">{extractText(lesson.content)}</p>
                   )}
                   {lesson.videoUrl && (
-                    <p className="text-sm text-gray-500 mt-1">{lesson.videoUrl}</p>
+                    <p className="text-xs text-gray-500 mt-1">🎬 {lesson.videoUrl}</p>
+                  )}
+                  {lesson.imageUrl && (
+                    <p className="text-xs text-gray-500 mt-1">🖼 {lesson.imageUrl}</p>
                   )}
                 </div>
                 <div className="flex gap-3 shrink-0 ml-4">
-                  <button onClick={() => startEdit(lesson)} className="text-sm underline">
+                  <button onClick={() => startEdit(lesson)} className="text-sm underline text-gray-700">
                     Edit
                   </button>
                   <button
