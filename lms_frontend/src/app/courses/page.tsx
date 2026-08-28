@@ -4,13 +4,11 @@ import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
 
 type Course = { id: number; documentId: string; title: string };
 type Enrollment = { id: number; course: { documentId: string } };
 
 function BrowseCoursesContent() {
-  const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [enrolledIds, setEnrolledIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -23,12 +21,10 @@ function BrowseCoursesContent() {
     const coursesData = await coursesRes.json();
     setCourses(coursesData.data ?? []);
 
-    const enrollRes = await apiFetch(
-      `/enrollments?filters[student][id][$eq]=${user?.id}&populate=course`
-    );
+    const enrollRes = await apiFetch('/my-enrollments');
     const enrollData = await enrollRes.json();
     const ids = new Set<string>(
-      (enrollData.data ?? []).map((e: any) => e.course?.documentId).filter(Boolean)
+      (enrollData.data ?? []).map((e: Enrollment) => e.course?.documentId).filter(Boolean)
     );
     setEnrolledIds(ids);
 
@@ -36,8 +32,8 @@ function BrowseCoursesContent() {
   };
 
   useEffect(() => {
-    if (user) loadData();
-  }, [user]);
+    loadData();
+  }, []);
 
   const handleEnroll = async (courseId: string) => {
     setEnrollingId(courseId);
@@ -67,7 +63,7 @@ function BrowseCoursesContent() {
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">Browse Courses</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-gray-900">Browse Courses</h1>
 
       {courses.length === 0 ? (
         <p className="text-gray-500">No courses available yet.</p>
@@ -76,15 +72,20 @@ function BrowseCoursesContent() {
           {courses.map((course) => {
             const isEnrolled = enrolledIds.has(course.documentId);
             return (
-              <li key={course.id} className="border rounded px-4 py-3 flex justify-between items-center">
-                <p className="font-medium">{course.title}</p>
+              <li
+                key={course.id}
+                className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm flex justify-between items-center"
+              >
+                <p className="font-medium text-gray-900">{course.title}</p>
                 {isEnrolled ? (
-                  <span className="text-sm text-green-600">Enrolled</span>
+                  <span className="text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-full px-3 py-1">
+                    ✓ Enrolled
+                  </span>
                 ) : (
                   <button
                     onClick={() => handleEnroll(course.documentId)}
                     disabled={enrollingId === course.documentId}
-                    className="bg-black text-white rounded px-4 py-2 text-sm disabled:opacity-50"
+                    className="bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800 transition-colors disabled:opacity-50 shadow-sm"
                   >
                     {enrollingId === course.documentId ? 'Enrolling...' : 'Enroll'}
                   </button>
