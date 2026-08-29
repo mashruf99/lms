@@ -167,13 +167,6 @@ Backend admin: `http://localhost:1337/admin`
 
 ---
 
-## Known Limitations
-
-- Quiz question options and correct answers are returned to the client when displaying a quiz (needed to render the questions) — a production-grade version would strip the correct-answer field from the payload sent to students taking the quiz, and only use it server-side during grading.
-- No password reset / email confirmation flow implemented (not required by the spec).
-- Local dev database is SQLite; if `lms_backend/.tmp/` is deleted, all local test data (users, roles, courses) is lost — the schema/code is unaffected since it's version-controlled, but roles and test accounts must be recreated per the setup steps above.
-
----
 
 ## Deployment Notes
 
