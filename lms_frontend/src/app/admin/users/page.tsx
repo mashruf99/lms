@@ -81,7 +81,7 @@ function UsersPageContent() {
       <h1 className="text-2xl font-semibold mb-6">Admin Dashboard</h1>
 
       {stats && (
-        <div className="mb-10">
+        <div className="mb-10 text-black">
           <h2 className="text-lg font-medium mb-3">Platform Stats</h2>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
             <StatCard label="Total Users" value={stats.totalUsers} />

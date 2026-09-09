@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "attempts",
+  "info": {
+    "singularName": "attempt",
+    "pluralName": "attempts",
+    "displayName": "Attempt"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "topic": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::topic.topic"
+    },
+    "questionIds": {
+      "type": "json"
+    },
+    "answers": {
+      "type": "json"
+    },
+    "score": {
+      "type": "integer"
+    },
+    "correctCount": {
+      "type": "integer"
+    },
+    "totalQuestions": {
+      "type": "integer"
+    },
+    "startedAt": {
+      "type": "datetime"
+    },
+    "completedAt": {
+      "type": "datetime"
+    }
+  }
+}

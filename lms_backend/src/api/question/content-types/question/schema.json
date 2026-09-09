@@ -21,10 +21,13 @@
     "correctOptionIndex": {
       "type": "integer"
     },
-    "quiz": {
+    "explanation": {
+      "type": "text"
+    },
+    "topic": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "api::quiz.quiz",
+      "target": "api::topic.topic",
       "inversedBy": "questions"
     }
   }

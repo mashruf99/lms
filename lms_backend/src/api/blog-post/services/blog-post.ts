@@ -1,6 +1,4 @@
-/**
- * blog-post service
- */
+//services/blog-post.ts
 
 import { factories } from '@strapi/strapi';
 

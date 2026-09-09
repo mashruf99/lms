@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch('/api/auth/me');
       const data = await res.json();
-      setUser(data.user);
+      setUser(data.user ?? null);
     } catch (err) {
       setUser(null);
     } finally {
@@ -39,7 +39,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    fetchUser();
+    let active = true;
+
+    const loadUser = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+
+        if (active) {
+          setUser(data.user ?? null);
+        }
+      } catch (err) {
+        if (active) {
+          setUser(null);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadUser();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const logout = async () => {

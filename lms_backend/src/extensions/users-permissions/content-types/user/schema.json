@@ -66,35 +66,16 @@
       "inversedBy": "users",
       "configurable": false
     },
-    "courses": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::course.course",
-      "mappedBy": "owner"
-    },
-    "enrollments": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::enrollment.enrollment",
-      "mappedBy": "student"
-    },
-    "lesson_progresses": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::lesson-progress.lesson-progress",
-      "mappedBy": "student"
-    },
-    "quiz_results": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::quiz-result.quiz-result",
-      "mappedBy": "student"
-    },
     "blog_posts": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::blog-post.blog-post",
       "mappedBy": "author"
+    },
+    "approvalStatus": {
+      "type": "enumeration",
+      "enum": ["pending", "approved", "rejected"],
+      "default": "pending"
     }
   }
 }

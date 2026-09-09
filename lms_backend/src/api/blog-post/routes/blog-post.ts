@@ -1,6 +1,4 @@
-/**
- * blog-post router
- */
+//routes/blog-post.ts
 
 import { factories } from '@strapi/strapi';
 
