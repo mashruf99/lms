@@ -75,6 +75,20 @@ function parseMarkdown(markdown: string): ParseResult {
   return { imported, skipped };
 }
 
+const CONCURRENCY = 20;
+
+async function runWithConcurrency<T>(items: T[], worker: (item: T) => Promise<void>, limit: number) {
+  let index = 0;
+  async function next(): Promise<void> {
+    const current = index++;
+    if (current >= items.length) return;
+    await worker(items[current]);
+    return next();
+  }
+  const runners = Array.from({ length: Math.min(limit, items.length) }, () => next());
+  await Promise.all(runners);
+}
+
 export default factories.createCoreController('api::topic.topic', ({ strapi }) => ({
   async importMarkdown(ctx: any) {
     const user = ctx.state.user;
@@ -99,7 +113,6 @@ export default factories.createCoreController('api::topic.topic', ({ strapi }) =
 
     const { imported, skipped } = parseMarkdown(markdown);
 
-    // Load existing question texts for this topic to skip duplicates
     const existing = await strapi.db.query('api::question.question').findMany({
       where: { topic: topic.id },
       select: ['text'],
@@ -111,15 +124,37 @@ export default factories.createCoreController('api::topic.topic', ({ strapi }) =
 
     let createdCount = 0;
     if (toCreate.length > 0) {
-      const rows = toCreate.map((q) => ({
-        text: q.text,
-        options: q.options,
-        correctOptionIndex: null,
-        topic: topic.id,
-        publishedAt: new Date().toISOString(),
-      }));
+      // Step 1: fast bulk insert of base fields (no relation)
+      await strapi.db.query('api::question.question').createMany({
+        data: toCreate.map((q) => ({
+          text: q.text,
+          options: q.options,
+          correctOptionIndex: null,
+          publishedAt: new Date().toISOString(),
+        })),
+      });
 
-      await strapi.db.query('api::question.question').createMany({ data: rows });
+      // Step 2: find the rows we just inserted (by text, scoped to no topic yet)
+      // and link them to the topic concurrently, not sequentially.
+      const newlyInserted = await strapi.db.query('api::question.question').findMany({
+        where: {
+          text: { $in: toCreate.map((q) => q.text) },
+          topic: null,
+        },
+        select: ['id'],
+      });
+
+      await runWithConcurrency(
+        newlyInserted,
+        async (row: any) => {
+          await strapi.db.query('api::question.question').update({
+            where: { id: row.id },
+            data: { topic: topic.id },
+          });
+        },
+        CONCURRENCY
+      );
+
       createdCount = toCreate.length;
     }
 

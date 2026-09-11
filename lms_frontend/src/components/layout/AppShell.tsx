@@ -8,8 +8,9 @@ type NavLink = { href: string; label: string };
 
 const NAV_BY_ROLE: Record<string, NavLink[]> = {
   Admin: [
-    { href: '/admin/users', label: 'Admin' },
-    { href: '/courses/manage', label: 'Courses' },
+    { href: '/admin/users', label: 'Users' },
+    { href: '/admin/topics', label: 'Topics' },
+    { href: '/admin/review', label: 'Review Answers' },
     { href: '/blog/manage', label: 'Manage Blog' },
     { href: '/blog', label: 'Blog' },
   ],
