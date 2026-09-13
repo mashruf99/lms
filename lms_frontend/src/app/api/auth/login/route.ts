@@ -21,6 +21,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check approval status before granting a session
+    const profileRes = await fetch(`${STRAPI_URL}/api/my-profile`, {
+      headers: { Authorization: `Bearer ${data.jwt}` },
+    });
+    const profileData = await profileRes.json();
+    const approvalStatus = profileData.user?.approvalStatus;
+
+    if (approvalStatus === 'pending') {
+      return NextResponse.json(
+        { error: 'Your account is awaiting admin approval.' },
+        { status: 403 }
+      );
+    }
+
+    if (approvalStatus === 'rejected') {
+      return NextResponse.json(
+        { error: 'Your account access has been denied. Contact the administrator.' },
+        { status: 403 }
+      );
+    }
+
     const response = NextResponse.json({ user: data.user });
 
     response.cookies.set('jwt', data.jwt, {
@@ -28,7 +49,7 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return response;

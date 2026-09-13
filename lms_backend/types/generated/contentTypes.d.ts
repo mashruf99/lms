@@ -472,6 +472,8 @@ export interface ApiAttemptAttempt extends Struct.CollectionTypeSchema {
     startedAt: Schema.Attribute.DateTime;
     topic: Schema.Attribute.Relation<'manyToOne', 'api::topic.topic'>;
     totalQuestions: Schema.Attribute.Integer;
+    type: Schema.Attribute.Enumeration<['mcq', 'cq']> &
+      Schema.Attribute.DefaultTo<'mcq'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -571,6 +573,42 @@ export interface ApiTopicTopic extends Struct.CollectionTypeSchema {
     name: Schema.Attribute.String & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
     questions: Schema.Attribute.Relation<'oneToMany', 'api::question.question'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    writtenQuestions: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::written-question.written-question'
+    >;
+  };
+}
+
+export interface ApiWrittenQuestionWrittenQuestion
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'written_questions';
+  info: {
+    displayName: 'WrittenQuestion';
+    pluralName: 'written-questions';
+    singularName: 'written-question';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::written-question.written-question'
+    > &
+      Schema.Attribute.Private;
+    marks: Schema.Attribute.Integer;
+    modelAnswer: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    text: Schema.Attribute.Text & Schema.Attribute.Required;
+    topic: Schema.Attribute.Relation<'manyToOne', 'api::topic.topic'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1099,6 +1137,7 @@ declare module '@strapi/strapi' {
       'api::blog-post.blog-post': ApiBlogPostBlogPost;
       'api::question.question': ApiQuestionQuestion;
       'api::topic.topic': ApiTopicTopic;
+      'api::written-question.written-question': ApiWrittenQuestionWrittenQuestion;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

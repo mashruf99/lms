@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -10,25 +11,52 @@ const NAV_BY_ROLE: Record<string, NavLink[]> = {
   Admin: [
     { href: '/admin/users', label: 'Users' },
     { href: '/admin/topics', label: 'Topics' },
+    { href: '/admin/import', label: 'Import' },
     { href: '/admin/review', label: 'Review Answers' },
     { href: '/blog/manage', label: 'Manage Blog' },
     { href: '/blog', label: 'Blog' },
   ],
-  'Content Manager': [
-    { href: '/courses/manage', label: 'Courses' },
-    { href: '/blog/manage', label: 'Manage Blog' },
-    { href: '/blog', label: 'Blog' },
-  ],
-  Instructor: [
-    { href: '/courses/manage', label: 'My Courses' },
-    { href: '/blog', label: 'Blog' },
-  ],
   Student: [
-    { href: '/courses', label: 'Browse' },
-    { href: '/my-courses', label: 'My Courses' },
+    { href: '/dashboard', label: 'Dashboard' },
     { href: '/blog', label: 'Blog' },
   ],
 };
+
+function StartPracticingDropdown() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <Link
+        href="/practice"
+        className="px-3 py-1.5 rounded-md text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors inline-block"
+      >
+        Start Practicing
+      </Link>
+
+      {open && (
+        <div className="absolute top-full left-0 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[140px] z-20">
+          <Link
+            href="/practice/mcq"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            MCQ
+          </Link>
+          <Link
+            href="/practice/cq"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            CQ
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { user, role, logout } = useAuth();
@@ -47,9 +75,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link href="/dashboard" className="font-semibold text-gray-900">
-              Learning Management System
+              MCQ Practice
             </Link>
             <nav className="flex items-center gap-1">
+              {role === 'Student' && <StartPracticingDropdown />}
               {links.map((link) => (
                 <Link
                   key={link.href}

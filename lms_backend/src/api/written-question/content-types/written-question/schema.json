@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "written_questions",
+  "info": {
+    "singularName": "written-question",
+    "pluralName": "written-questions",
+    "displayName": "WrittenQuestion"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "text": {
+      "type": "text",
+      "required": true
+    },
+    "marks": {
+      "type": "integer"
+    },
+    "modelAnswer": {
+      "type": "text"
+    },
+    "topic": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::topic.topic",
+      "inversedBy": "writtenQuestions"
+    }
+  }
+}

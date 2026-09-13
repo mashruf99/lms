@@ -21,6 +21,11 @@
       "relation": "manyToOne",
       "target": "api::topic.topic"
     },
+    "type": {
+      "type": "enumeration",
+      "enum": ["mcq", "cq"],
+      "default": "mcq"
+    },
     "questionIds": {
       "type": "json"
     },

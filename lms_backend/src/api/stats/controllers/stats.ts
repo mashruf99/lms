@@ -13,25 +13,31 @@ export default {
     });
 
     const usersByRole: Record<string, number> = {};
+    const usersByApproval: Record<string, number> = { pending: 0, approved: 0, rejected: 0 };
     for (const u of allUsers) {
       const roleName = u.role?.name ?? 'Unknown';
       usersByRole[roleName] = (usersByRole[roleName] ?? 0) + 1;
+      const status = u.approvalStatus ?? 'pending';
+      usersByApproval[status] = (usersByApproval[status] ?? 0) + 1;
     }
 
-    const totalCourses = await strapi.db.query('api::course.course').count();
-    const totalEnrollments = await strapi.db.query('api::enrollment.enrollment').count();
-    const totalLessons = await strapi.db.query('api::lesson.lesson').count();
-    const totalQuizzes = await strapi.db.query('api::quiz.quiz').count();
+    const totalTopics = await strapi.db.query('api::topic.topic').count();
+    const totalQuestions = await strapi.db.query('api::question.question').count();
+    const totalUnansweredQuestions = await strapi.db.query('api::question.question').count({
+      where: { correctOptionIndex: null },
+    });
+    const totalAttempts = await strapi.db.query('api::attempt.attempt').count();
     const totalBlogPosts = await strapi.db.query('api::blog-post.blog-post').count();
 
     ctx.body = {
       data: {
         usersByRole,
+        usersByApproval,
         totalUsers: allUsers.length,
-        totalCourses,
-        totalEnrollments,
-        totalLessons,
-        totalQuizzes,
+        totalTopics,
+        totalQuestions,
+        totalUnansweredQuestions,
+        totalAttempts,
         totalBlogPosts,
       },
     };

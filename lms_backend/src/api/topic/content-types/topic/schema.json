@@ -23,6 +23,12 @@
       "relation": "oneToMany",
       "target": "api::question.question",
       "mappedBy": "topic"
+    },
+    "writtenQuestions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::written-question.written-question",
+      "mappedBy": "topic"
     }
   }
 }
