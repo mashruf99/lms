@@ -10,6 +10,7 @@ type Question = {
   documentId: string;
   text: string;
   options: string[];
+  citation?: string | null;
   topic?: { id: number; name: string };
 };
 
@@ -21,6 +22,7 @@ function ReviewContent() {
   const [saving, setSaving] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [explanation, setExplanation] = useState('');
+  const [citation, setCitation] = useState('');
   const [reviewedCount, setReviewedCount] = useState(0);
 
   const loadBatch = useCallback(async () => {
@@ -32,12 +34,17 @@ function ReviewContent() {
     setIndex(0);
     setSelectedOption(null);
     setExplanation('');
+    setCitation('');
     setLoading(false);
   }, []);
 
   useEffect(() => {
     loadBatch();
   }, [loadBatch]);
+
+  useEffect(() => {
+    setCitation(questions[index]?.citation ?? '');
+  }, [index, questions]);
 
   const current = questions[index];
 
@@ -50,6 +57,7 @@ function ReviewContent() {
       body: JSON.stringify({
         correctOptionIndex: selectedOption,
         explanation: explanation || undefined,
+        citation: citation || null,
       }),
     });
 
@@ -57,11 +65,11 @@ function ReviewContent() {
     setSaving(false);
     setSelectedOption(null);
     setExplanation('');
+    setCitation('');
 
     if (index + 1 < questions.length) {
       setIndex(index + 1);
     } else {
-      // batch exhausted, fetch the next one
       await loadBatch();
     }
   };
@@ -69,6 +77,7 @@ function ReviewContent() {
   const handleSkip = () => {
     setSelectedOption(null);
     setExplanation('');
+    setCitation('');
     if (index + 1 < questions.length) {
       setIndex(index + 1);
     } else {
@@ -126,8 +135,18 @@ function ReviewContent() {
           ))}
         </div>
 
+        <label className="block text-xs text-gray-500 mb-1">Citation / source (optional)</label>
+        <input
+          type="text"
+          placeholder="e.g. Combined Bank Officer (IT) 04.10.2024 compact it 13 (ET: BIBM)"
+          value={citation}
+          onChange={(e) => setCitation(e.target.value)}
+          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mb-3"
+        />
+
+        <label className="block text-xs text-gray-500 mb-1">Explanation (optional)</label>
         <textarea
-          placeholder="Explanation (optional)"
+          placeholder="Explanation"
           value={explanation}
           onChange={(e) => setExplanation(e.target.value)}
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mb-4"

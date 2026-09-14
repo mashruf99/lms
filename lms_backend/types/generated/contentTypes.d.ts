@@ -531,6 +531,7 @@ export interface ApiQuestionQuestion extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    citation: Schema.Attribute.String;
     correctOptionIndex: Schema.Attribute.Integer;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

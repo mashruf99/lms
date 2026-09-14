@@ -149,8 +149,8 @@ export default {
     // Return questions WITHOUT the answer key
     const sanitized = pool.map((q: any) =>
       type === 'mcq'
-        ? { id: q.id, text: q.text, options: q.options }
-        : { id: q.id, text: q.text, marks: q.marks }
+        ? { id: q.id, text: q.text, options: q.options, citation: q.citation }
+        : { id: q.id, text: q.text, marks: q.marks, citation: q.citation }
     );
 
     ctx.body = {
@@ -245,6 +245,7 @@ export default {
           options: q?.options,
           correctOptionIndex: q?.correctOptionIndex,
           explanation: q?.explanation,
+          citation: q?.citation,
           yourAnswer: attempt.answers?.[qid] ?? null,
         };
       });

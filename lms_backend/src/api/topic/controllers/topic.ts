@@ -9,19 +9,21 @@ const { ForbiddenError, ValidationError } = errors;
 type ParsedQuestion = {
   text: string;
   options: string[];
+  citation: string | null;
 };
 
 type ParseResult = {
   imported: ParsedQuestion[];
-  skipped: { line: number; reason: string; snippet: string }[];
+  lowOptionCount: number;
 };
 
 function parseMarkdown(markdown: string): ParseResult {
   const lines = markdown.split('\n');
   const imported: ParsedQuestion[] = [];
-  const skipped: ParseResult['skipped'] = [];
+  let lowOptionCount = 0;
 
-  const questionStart = /^\s*\d+\.\s*\*\*(.+?)\*\*/;
+  // Question line, optionally followed by a citation like *[Source, Date ...]*
+  const questionStart = /^\s*\d+\.\s*\*\*(.+?)\*\*\s*(?:\*\[(.+?)\]\*)?/;
   const optionLine = /^\s*[\(]?([a-dA-Dকখগঘ])[\)\.]?\s*(.+)$/;
 
   let i = 0;
@@ -35,7 +37,7 @@ function parseMarkdown(markdown: string): ParseResult {
     }
 
     const questionText = match[1].trim();
-    const startLine = i;
+    const citation = match[2] ? match[2].trim() : null;
     const options: string[] = [];
 
     let j = i + 1;
@@ -59,20 +61,18 @@ function parseMarkdown(markdown: string): ParseResult {
       break;
     }
 
-    if (options.length >= 2) {
-      imported.push({ text: questionText, options });
-    } else {
-      skipped.push({
-        line: startLine + 1,
-        reason: 'Fewer than 2 recognizable options found',
-        snippet: questionText.slice(0, 80),
-      });
+    if (options.length < 2) {
+      lowOptionCount += 1;
     }
+
+    // Import everything the question-start pattern detects, regardless of
+    // option count - admin reviews/curates manually via the edit UI.
+    imported.push({ text: questionText, options, citation });
 
     i = j;
   }
 
-  return { imported, skipped };
+  return { imported, lowOptionCount };
 }
 
 const CONCURRENCY = 20;
@@ -111,7 +111,7 @@ export default factories.createCoreController('api::topic.topic', ({ strapi }) =
       throw new ValidationError('Topic not found');
     }
 
-    const { imported, skipped } = parseMarkdown(markdown);
+    const { imported, lowOptionCount } = parseMarkdown(markdown);
 
     const existing = await strapi.db.query('api::question.question').findMany({
       where: { topic: topic.id },
@@ -130,6 +130,7 @@ export default factories.createCoreController('api::topic.topic', ({ strapi }) =
           text: q.text,
           options: q.options,
           correctOptionIndex: null,
+          citation: q.citation,
           publishedAt: new Date().toISOString(),
         })),
       });
@@ -163,8 +164,7 @@ export default factories.createCoreController('api::topic.topic', ({ strapi }) =
         topicName: topic.name,
         importedCount: createdCount,
         duplicateSkippedCount: duplicateCount,
-        formatSkippedCount: skipped.length,
-        skipped,
+        lowOptionCount,
       },
     };
   },

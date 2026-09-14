@@ -53,7 +53,7 @@ export default factories.createCoreController('api::question.question', ({ strap
     }
 
     const { id } = ctx.params;
-    const { correctOptionIndex, explanation } = ctx.request.body;
+    const { correctOptionIndex, explanation, citation } = ctx.request.body;
 
     if (correctOptionIndex === undefined || correctOptionIndex === null) {
       throw new ValidationError('correctOptionIndex is required');
@@ -80,6 +80,7 @@ export default factories.createCoreController('api::question.question', ({ strap
       data: {
         correctOptionIndex,
         explanation: explanation ?? question.explanation,
+        citation: citation !== undefined ? citation : question.citation,
       },
     });
 

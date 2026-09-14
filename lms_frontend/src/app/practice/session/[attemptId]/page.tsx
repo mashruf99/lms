@@ -6,8 +6,8 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
 
-type McqQuestion = { id: number; text: string; options: string[] };
-type CqQuestion = { id: number; text: string; marks?: number };
+type McqQuestion = { id: number; text: string; options: string[]; citation?: string | null };
+type CqQuestion = { id: number; text: string; marks?: number; citation?: string | null };
 
 type StartedSession = {
   attemptId: string;
@@ -129,7 +129,10 @@ function SessionContent() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6">
-        <p className="font-medium text-gray-900 mb-4">{current.text}</p>
+        <p className="font-medium text-gray-900 mb-1">{current.text}</p>
+        {current.citation && (
+          <p className="text-xs text-gray-400 mb-4">Source: {current.citation}</p>
+        )}
 
         {session.type === 'mcq' ? (
           <div className="flex flex-col gap-2">

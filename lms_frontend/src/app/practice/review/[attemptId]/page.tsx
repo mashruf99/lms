@@ -12,6 +12,7 @@ type McqItem = {
   options: string[];
   correctOptionIndex: number;
   explanation?: string;
+  citation?: string | null;
   yourAnswer: number | null;
 };
 
@@ -20,6 +21,7 @@ type CqItem = {
   text: string;
   marks?: number;
   modelAnswer?: string;
+  citation?: string | null;
   yourAnswer: string;
 };
 
@@ -102,9 +104,12 @@ function ReviewContent() {
 
           return (
             <div key={item.id} className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
-              <p className="font-medium text-gray-900 mb-3">
+              <p className="font-medium text-gray-900 mb-1">
                 {idx + 1}. {item.text}
               </p>
+              {item.citation && (
+                <p className="text-xs text-gray-400 mb-3">Source: {item.citation}</p>
+              )}
 
               {isMcq ? (
                 <div className="flex flex-col gap-1 mb-3">
