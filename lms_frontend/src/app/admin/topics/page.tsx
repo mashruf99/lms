@@ -163,6 +163,9 @@ function TopicsContent() {
                   <Link href={`/admin/topics/${topic.documentId}`} className="text-sm underline text-gray-700">
                     Manage Questions
                   </Link>
+                  <Link href={`/admin/topics/${topic.documentId}/written`} className="text-sm underline text-gray-700">
+                    Manage Written (CQ)
+                  </Link>
                   <button onClick={() => startEdit(topic)} className="text-sm underline text-gray-700">
                     Edit
                   </button>

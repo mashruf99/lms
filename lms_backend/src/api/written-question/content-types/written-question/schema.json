@@ -21,6 +21,9 @@
     "modelAnswer": {
       "type": "text"
     },
+    "citation": {
+      "type": "string"
+    },
     "topic": {
       "type": "relation",
       "relation": "manyToOne",

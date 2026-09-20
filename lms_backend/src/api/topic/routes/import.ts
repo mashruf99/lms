@@ -13,5 +13,18 @@ export default {
         type: 'content-api',
       },
     },
+    {
+      method: 'POST',
+      path: '/topics/import-written-markdown',
+      handler: 'topic.importWrittenMarkdown',
+      config: {
+        policies: [],
+        auth: {},
+      },
+      info: {
+        apiName: 'topic',
+        type: 'content-api',
+      },
+    },
   ],
 };
