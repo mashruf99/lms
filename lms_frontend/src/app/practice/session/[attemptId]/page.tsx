@@ -91,7 +91,7 @@ function SessionContent() {
   if (!session) {
     return (
       <div className="p-8 max-w-2xl mx-auto text-center">
-        <p className="text-gray-600 mb-4">
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
           Session data not found. Please start a new practice session.
         </p>
         <a href="/practice" className="underline text-sm">
@@ -114,24 +114,24 @@ function SessionContent() {
     <div className="p-8 max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <p className="text-sm text-gray-500">{session.topicName}</p>
-          <p className="text-xs text-gray-400">
+          <p className="text-sm text-gray-500 dark:text-gray-400">{session.topicName}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
             Question {index + 1} of {total}
           </p>
         </div>
         <div
           className={`text-lg font-mono font-semibold px-4 py-2 rounded-full ${
-            timeUrgent ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-800'
+            timeUrgent ? 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
           }`}
         >
           {minutes}:{seconds.toString().padStart(2, '0')}
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6">
-        <p className="font-medium text-gray-900 mb-1">{current.text}</p>
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6 mb-6">
+        <p className="font-medium text-gray-900 dark:text-gray-100 mb-1">{current.text}</p>
         {current.citation && (
-          <p className="text-xs text-gray-400 mb-4">Source: {current.citation}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">Source: {current.citation}</p>
         )}
 
         {session.type === 'mcq' ? (
@@ -141,8 +141,8 @@ function SessionContent() {
                 key={i}
                 className={`flex items-center gap-3 border rounded-lg px-4 py-2 cursor-pointer transition-colors ${
                   mcqAnswers[current.id] === i
-                    ? 'border-gray-900 bg-gray-50'
-                    : 'border-gray-200 hover:bg-gray-50'
+                    ? 'border-gray-900 dark:border-gray-100 bg-gray-50 dark:bg-gray-800/50'
+                    : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                 }`}
               >
                 <input
@@ -151,7 +151,7 @@ function SessionContent() {
                   checked={mcqAnswers[current.id] === i}
                   onChange={() => setMcqAnswers((prev) => ({ ...prev, [current.id]: i }))}
                 />
-                <span className="text-sm text-gray-800">{opt}</span>
+                <span className="text-sm text-gray-800 dark:text-gray-200">{opt}</span>
               </label>
             ))}
           </div>
@@ -161,7 +161,7 @@ function SessionContent() {
             onChange={(e) => setCqAnswers((prev) => ({ ...prev, [current.id]: e.target.value }))}
             placeholder="Write your answer..."
             rows={8}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 text-sm"
           />
         )}
       </div>
@@ -170,7 +170,7 @@ function SessionContent() {
         <button
           onClick={goPrev}
           disabled={index === 0}
-          className="px-4 py-2 text-sm border border-gray-300 rounded-md disabled:opacity-40"
+          className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md disabled:opacity-40"
         >
           Previous
         </button>
@@ -180,7 +180,7 @@ function SessionContent() {
             <button
               key={i}
               onClick={() => setIndex(i)}
-              className={`w-2 h-2 rounded-full ${i === index ? 'bg-gray-900' : 'bg-gray-300'}`}
+              className={`w-2 h-2 rounded-full ${i === index ? 'bg-gray-900 dark:bg-gray-100' : 'bg-gray-300'}`}
             />
           ))}
         </div>
@@ -189,7 +189,7 @@ function SessionContent() {
           {index < total - 1 && (
             <button
               onClick={goNext}
-              className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50"
             >
               Next
             </button>
@@ -197,7 +197,7 @@ function SessionContent() {
           <button
             onClick={handleSubmitClick}
             disabled={submitting}
-            className="px-4 py-2 text-sm bg-gray-900 text-white rounded-md hover:bg-gray-800 disabled:opacity-50"
+            className="px-4 py-2 text-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50"
           >
             {submitting ? 'Submitting...' : 'Submit'}
           </button>

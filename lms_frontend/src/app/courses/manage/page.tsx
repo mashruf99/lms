@@ -74,9 +74,9 @@ function ManageCoursesContent() {
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-2 text-gray-900">Manage Courses</h1>
+      <h1 className="text-2xl font-semibold mb-2 text-gray-900 dark:text-gray-100">Manage Courses</h1>
       {role === 'Instructor' && (
-        <p className="text-sm text-gray-500 mb-6">Showing only courses you own.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Showing only courses you own.</p>
       )}
 
       <form onSubmit={handleCreate} className="flex gap-2 mb-8">
@@ -86,49 +86,49 @@ function ManageCoursesContent() {
           placeholder="New course title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-shadow"
+          className="flex-1 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 dark:focus:border-gray-600 transition-shadow"
         />
         <button
           type="submit"
           disabled={creating}
-          className="bg-gray-900 text-white rounded-md px-4 py-2 hover:bg-gray-800 transition-colors disabled:opacity-50 shadow-sm"
+          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 shadow-sm"
         >
           {creating ? 'Creating...' : 'Create'}
         </button>
       </form>
 
-      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p className="text-red-600 dark:text-red-400 text-sm mb-4">{error}</p>}
 
       {loading ? (
         <p>Loading...</p>
       ) : courses.length === 0 ? (
-        <p className="text-gray-500">No courses yet.</p>
+        <p className="text-gray-500 dark:text-gray-400">No courses yet.</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {courses.map((course) => (
             <li
               key={course.id}
-              className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm flex justify-between items-center"
+              className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm flex justify-between items-center"
             >
               <div>
-                <p className="font-medium text-gray-900">{course.title}</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{course.title}</p>
                 {course.owner && (
-                  <p className="text-sm text-gray-500">Owner: {course.owner.username}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Owner: {course.owner.username}</p>
                 )}
               </div>
               <div className="flex gap-3">
-                <Link href={`/courses/manage/${course.documentId}`} className="text-sm underline text-gray-700">
+                <Link href={`/courses/manage/${course.documentId}`} className="text-sm underline text-gray-700 dark:text-gray-300">
                   Manage Lessons
                 </Link>
-                <Link href={`/courses/manage/${course.documentId}/quiz`} className="text-sm underline text-gray-700">
+                <Link href={`/courses/manage/${course.documentId}/quiz`} className="text-sm underline text-gray-700 dark:text-gray-300">
                   Manage Quiz
                 </Link>
-                <Link href={`/courses/manage/${course.documentId}/students`} className="text-sm underline text-gray-700">
+                <Link href={`/courses/manage/${course.documentId}/students`} className="text-sm underline text-gray-700 dark:text-gray-300">
                   Student Progress
                 </Link>
                 <button
                   onClick={() => handleDelete(course.documentId)}
-                  className="text-sm text-red-600 underline"
+                  className="text-sm text-red-600 dark:text-red-400 underline"
                 >
                   Delete
                 </button>

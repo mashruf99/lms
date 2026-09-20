@@ -47,22 +47,22 @@ function StudentProgressContent() {
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
-      <a href="/courses/manage" className="text-sm underline mb-4 inline-block text-gray-600">
+      <a href="/courses/manage" className="text-sm underline mb-4 inline-block text-gray-600 dark:text-gray-400">
         ← Back to Courses
       </a>
-      <h1 className="text-2xl font-semibold mb-6 text-gray-900">
+      <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
         Student Progress — {courseTitle}
       </h1>
 
-      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p className="text-red-600 dark:text-red-400 text-sm mb-4">{error}</p>}
 
       {students.length === 0 ? (
-        <p className="text-gray-500">No students enrolled yet.</p>
+        <p className="text-gray-500 dark:text-gray-400">No students enrolled yet.</p>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="text-left border-b bg-gray-50">
+              <tr className="text-left border-b bg-gray-50 dark:bg-gray-800/50">
                 <th className="py-2 px-4">Student</th>
                 <th className="py-2 px-4">Email</th>
                 <th className="py-2 px-4">Progress</th>
@@ -72,16 +72,16 @@ function StudentProgressContent() {
               {students.map((s) => (
                 <tr key={s.studentId} className="border-b last:border-0">
                   <td className="py-3 px-4">{s.username}</td>
-                  <td className="py-3 px-4 text-gray-600">{s.email}</td>
+                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{s.email}</td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div
-                          className="bg-gray-900 h-2 rounded-full"
+                          className="bg-gray-900 dark:bg-gray-100 h-2 rounded-full"
                           style={{ width: `${s.percent}%` }}
                         />
                       </div>
-                      <span className="text-sm text-gray-700">
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
                         {s.completedCount}/{s.totalLessons} ({s.percent}%)
                       </span>
                     </div>

@@ -29,18 +29,18 @@ const AVAILABLE_ROLES = ['Admin', 'Student', 'Authenticated'];
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm text-center">
-      <p className="text-2xl font-semibold text-gray-900">{value}</p>
-      <p className="text-xs text-gray-500 mt-1">{label}</p>
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm text-center">
+      <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{value}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{label}</p>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: User['approvalStatus'] }) {
   const styles = {
-    pending: 'bg-amber-100 text-amber-700',
-    approved: 'bg-green-100 text-green-700',
-    rejected: 'bg-red-100 text-red-700',
+    pending: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
+    approved: 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300',
+    rejected: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300',
   };
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full ${styles[status] ?? styles.pending}`}>
@@ -112,11 +112,11 @@ function UsersPageContent() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6 text-gray-900">Admin Dashboard</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">Admin Dashboard</h1>
 
       {stats && (
         <div className="mb-10">
-          <h2 className="text-lg font-medium mb-3 text-gray-900">Platform Stats</h2>
+          <h2 className="text-lg font-medium mb-3 text-gray-900 dark:text-gray-100">Platform Stats</h2>
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
             <StatCard label="Total Users" value={stats.totalUsers} />
             <StatCard label="Topics" value={stats.totalTopics} />
@@ -128,10 +128,10 @@ function UsersPageContent() {
       )}
 
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-medium text-gray-900">
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
           Manage Users
           {pendingCount > 0 && (
-            <span className="ml-2 text-sm font-normal text-amber-600">
+            <span className="ml-2 text-sm font-normal text-amber-600 dark:text-amber-400">
               ({pendingCount} pending approval)
             </span>
           )}
@@ -139,13 +139,13 @@ function UsersPageContent() {
         <div className="flex gap-2 text-sm">
           <button
             onClick={() => setFilter('pending')}
-            className={`px-3 py-1 rounded-md ${filter === 'pending' ? 'bg-gray-900 text-white' : 'border border-gray-300'}`}
+            className={`px-3 py-1 rounded-md ${filter === 'pending' ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900' : 'border border-gray-300 dark:border-gray-700'}`}
           >
             Pending
           </button>
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-1 rounded-md ${filter === 'all' ? 'bg-gray-900 text-white' : 'border border-gray-300'}`}
+            className={`px-3 py-1 rounded-md ${filter === 'all' ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900' : 'border border-gray-300 dark:border-gray-700'}`}
           >
             All
           </button>
@@ -153,14 +153,14 @@ function UsersPageContent() {
       </div>
 
       {visibleUsers.length === 0 ? (
-        <p className="text-gray-500">
+        <p className="text-gray-500 dark:text-gray-400">
           {filter === 'pending' ? 'No pending approvals.' : 'No users.'}
         </p>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="text-left border-b bg-gray-50">
+              <tr className="text-left border-b bg-gray-50 dark:bg-gray-800/50">
                 <th className="py-2 px-4">Username</th>
                 <th className="py-2 px-4">Email</th>
                 <th className="py-2 px-4">Status</th>
@@ -172,7 +172,7 @@ function UsersPageContent() {
               {visibleUsers.map((u) => (
                 <tr key={u.id} className="border-b last:border-0">
                   <td className="py-2 px-4">{u.username}</td>
-                  <td className="py-2 px-4 text-gray-600">{u.email}</td>
+                  <td className="py-2 px-4 text-gray-600 dark:text-gray-400">{u.email}</td>
                   <td className="py-2 px-4">
                     <StatusBadge status={u.approvalStatus ?? 'pending'} />
                   </td>
@@ -181,7 +181,7 @@ function UsersPageContent() {
                       value={roles.find((r) => r.name === u.role?.name)?.id ?? ''}
                       disabled={savingId === u.id}
                       onChange={(e) => handleRoleChange(u.id, Number(e.target.value))}
-                      className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+                      className="border border-gray-300 dark:border-gray-700 rounded-md px-2 py-1 text-sm"
                     >
                       {roles
                         .filter((r) => AVAILABLE_ROLES.includes(r.name))
@@ -197,7 +197,7 @@ function UsersPageContent() {
                       <button
                         onClick={() => handleApproval(u.id, 'approved')}
                         disabled={savingId === u.id}
-                        className="text-xs text-green-700 underline mr-3 disabled:opacity-50"
+                        className="text-xs text-green-700 dark:text-green-300 underline mr-3 disabled:opacity-50"
                       >
                         Approve
                       </button>
@@ -206,7 +206,7 @@ function UsersPageContent() {
                       <button
                         onClick={() => handleApproval(u.id, 'rejected')}
                         disabled={savingId === u.id}
-                        className="text-xs text-red-600 underline disabled:opacity-50"
+                        className="text-xs text-red-600 dark:text-red-400 underline disabled:opacity-50"
                       >
                         Reject
                       </button>

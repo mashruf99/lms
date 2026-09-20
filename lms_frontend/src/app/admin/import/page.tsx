@@ -111,13 +111,13 @@ function ImportContent() {
 
   return (
     <div className="p-8 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6 text-gray-900">Import Questions</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">Import Questions</h1>
 
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 flex flex-col gap-4">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6 flex flex-col gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Topic</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Topic</label>
           <div className="flex gap-3 mb-2">
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
               <input
                 type="radio"
                 checked={!useNewTopic}
@@ -125,7 +125,7 @@ function ImportContent() {
               />
               Existing topic
             </label>
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
               <input
                 type="radio"
                 checked={useNewTopic}
@@ -141,13 +141,13 @@ function ImportContent() {
               placeholder="New topic name"
               value={newTopicName}
               onChange={(e) => setNewTopicName(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2"
             />
           ) : (
             <select
               value={selectedTopicId}
               onChange={(e) => setSelectedTopicId(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md px-3 py-2"
             >
               <option value="">Select a topic...</option>
               {topics.map((t) => (
@@ -160,51 +160,51 @@ function ImportContent() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Markdown file</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Markdown file</label>
           <input
             type="file"
             accept=".md,text/markdown,text/plain"
             onChange={handleFileChange}
             className="text-sm"
           />
-          {fileName && <p className="text-xs text-gray-500 mt-1">Selected: {fileName}</p>}
+          {fileName && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Selected: {fileName}</p>}
         </div>
 
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}
 
         <button
           onClick={handleImport}
           disabled={importing}
-          className="bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800 transition-colors disabled:opacity-50 self-start"
+          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-4 py-2 text-sm hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 self-start"
         >
           {importing ? 'Importing...' : 'Import'}
         </button>
       </div>
 
       {result && (
-        <div className="mt-6 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-          <h2 className="font-medium text-gray-900 mb-3">Result — {result.topicName}</h2>
+        <div className="mt-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6">
+          <h2 className="font-medium text-gray-900 dark:text-white mb-3">Result — {result.topicName}</h2>
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="text-center">
-              <p className="text-xl font-semibold text-green-700">{result.importedCount}</p>
-              <p className="text-xs text-gray-500">Imported</p>
+              <p className="text-xl font-semibold text-green-700 dark:text-green-300">{result.importedCount}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Imported</p>
             </div>
             <div className="text-center">
-              <p className="text-xl font-semibold text-gray-500">{result.duplicateSkippedCount}</p>
-              <p className="text-xs text-gray-500">Duplicates skipped</p>
+              <p className="text-xl font-semibold text-gray-500 dark:text-gray-400">{result.duplicateSkippedCount}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Duplicates skipped</p>
             </div>
             <div className="text-center">
-              <p className="text-xl font-semibold text-amber-600">{result.formatSkippedCount}</p>
-              <p className="text-xs text-gray-500">Format skipped</p>
+              <p className="text-xl font-semibold text-amber-600 dark:text-amber-400">{result.formatSkippedCount}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Format skipped</p>
             </div>
           </div>
 
           {result.skipped.length > 0 && (
             <details>
-              <summary className="text-sm text-gray-600 cursor-pointer underline">
+              <summary className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer underline">
                 View skipped entries
               </summary>
-              <ul className="mt-2 text-xs text-gray-500 flex flex-col gap-1 max-h-64 overflow-y-auto">
+              <ul className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex flex-col gap-1 max-h-64 overflow-y-auto">
                 {result.skipped.map((s, i) => (
                   <li key={i}>
                     Line {s.line}: {s.reason} — "{s.snippet}"

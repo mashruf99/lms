@@ -102,7 +102,7 @@ function TakeQuizContent() {
   if (!quiz) {
     return (
       <div className="p-8 max-w-2xl mx-auto">
-        <p className="text-gray-500">No quiz available for this course yet.</p>
+        <p className="text-gray-500 dark:text-gray-400">No quiz available for this course yet.</p>
       </div>
     );
   }
@@ -113,7 +113,7 @@ function TakeQuizContent() {
         <h1 className="text-2xl font-semibold mb-4">Quiz Result</h1>
         <div className="border rounded p-6 text-center">
           <p className="text-4xl font-bold mb-2">{result.score}%</p>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             {result.correctCount} of {result.totalQuestions} correct
           </p>
         </div>
@@ -154,7 +154,7 @@ function TakeQuizContent() {
         ))}
       </div>
 
-      {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
+      {error && <p className="text-red-600 dark:text-red-400 text-sm mt-4">{error}</p>}
 
       <button
         onClick={handleSubmit}

@@ -160,16 +160,16 @@ function ManageBlogContent() {
         >
           {creating ? 'Creating...' : 'Create Post (as Draft)'}
         </button>
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}
       </form>
 
       {posts.length === 0 ? (
-        <p className="text-gray-500">No posts yet.</p>
+        <p className="text-gray-500 dark:text-gray-400">No posts yet.</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {posts.map((post) =>
             editingId === post.documentId ? (
-              <li key={post.id} className="border rounded p-4 flex flex-col gap-3 bg-gray-50">
+              <li key={post.id} className="border rounded p-4 flex flex-col gap-3 bg-gray-50 dark:bg-gray-800/50">
                 <input
                   type="text"
                   value={editTitle}
@@ -210,8 +210,8 @@ function ManageBlogContent() {
                     <span
                       className={`text-xs px-2 py-0.5 rounded ${
                         post.postStatus === 'published'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                       }`}
                     >
                       {post.postStatus}
@@ -226,7 +226,7 @@ function ManageBlogContent() {
                     </button>
                     <button
                       onClick={() => handleDelete(post.documentId)}
-                      className="text-sm text-red-600 underline"
+                      className="text-sm text-red-600 dark:text-red-400 underline"
                     >
                       Delete
                     </button>

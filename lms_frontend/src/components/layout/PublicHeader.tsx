@@ -7,15 +7,15 @@ export default function PublicHeader() {
   const { user, loading } = useAuth();
 
   return (
-    <header className="sticky top-0 z-10 backdrop-blur-md bg-white/80 border-b border-gray-200">
+    <header className="sticky top-0 z-10 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-        <Link href="/" className="font-semibold text-gray-900">
+        <Link href="/" className="font-semibold text-gray-900 dark:text-gray-100">
           Learning Management System
         </Link>
         <div className="flex items-center gap-3">
           <Link
             href="/blog"
-            className="px-3 py-1.5 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+            className="px-3 py-1.5 rounded-md text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             Blog
           </Link>
@@ -23,7 +23,7 @@ export default function PublicHeader() {
           {loading ? null : user ? (
             <Link
               href="/dashboard"
-              className="px-4 py-1.5 rounded-md text-sm bg-gray-900 text-white hover:bg-gray-800 transition-colors shadow-sm"
+              className="px-4 py-1.5 rounded-md text-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-sm"
             >
               Dashboard
             </Link>
@@ -31,13 +31,13 @@ export default function PublicHeader() {
             <>
               <Link
                 href="/login"
-                className="px-3 py-1.5 rounded-md text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+                className="px-3 py-1.5 rounded-md text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 Log in
               </Link>
               <Link
                 href="/signup"
-                className="px-4 py-1.5 rounded-md text-sm bg-gray-900 text-white hover:bg-gray-800 transition-colors shadow-sm"
+                className="px-4 py-1.5 rounded-md text-sm bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors shadow-sm"
               >
                 Sign up
               </Link>

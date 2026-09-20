@@ -1,8 +1,17 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #030712;
+  --foreground: #f3f4f6;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -15,5 +24,26 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/*
+  Form controls: Tailwind v4 makes inputs transparent, so in dark mode they
+  would sit directly on the card colour. Give them a slightly lighter surface
+  and a visible border. Utility classes (bg-*, border-*) still override this.
+*/
+@layer base {
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  .dark textarea,
+  .dark select {
+    background-color: #1f2937;
+    color: #f3f4f6;
+    border-color: #374151;
+  }
+
+  .dark ::placeholder {
+    color: #6b7280;
+    opacity: 1;
+  }
 }

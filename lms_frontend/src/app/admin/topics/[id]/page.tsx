@@ -155,23 +155,23 @@ function TopicQuestionsContent() {
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
-      <a href="/admin/topics" className="text-sm underline mb-4 inline-block text-gray-600">
+      <a href="/admin/topics" className="text-sm underline mb-4 inline-block text-gray-600 dark:text-gray-400">
         ← Back to Topics
       </a>
-      <h1 className="text-2xl font-semibold mb-6 text-gray-900">
+      <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
         Questions — {topic?.name ?? 'Topic'}
       </h1>
 
       {/* Create form */}
-      <form onSubmit={handleCreate} className="flex flex-col gap-3 mb-8 bg-white border border-gray-200 rounded-xl shadow-sm p-4">
-        <p className="font-medium text-sm text-gray-700">Add a new question</p>
+      <form onSubmit={handleCreate} className="flex flex-col gap-3 mb-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-4">
+        <p className="font-medium text-sm text-gray-700 dark:text-gray-300">Add a new question</p>
         <input
           type="text"
           required
           placeholder="Question text"
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
         />
         {newOptions.map((opt, i) => (
           <div key={i} className="flex items-center gap-2">
@@ -190,7 +190,7 @@ function TopicQuestionsContent() {
                 next[i] = e.target.value;
                 setNewOptions(next);
               }}
-              className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+              className="flex-1 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
             />
           </div>
         ))}
@@ -198,33 +198,33 @@ function TopicQuestionsContent() {
           placeholder="Explanation (optional)"
           value={newExplanation}
           onChange={(e) => setNewExplanation(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
           rows={2}
         />
-        <p className="text-xs text-gray-500">Select the radio button next to the correct answer.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Select the radio button next to the correct answer.</p>
         <button
           type="submit"
           disabled={creating}
-          className="bg-gray-900 text-white rounded-md px-4 py-2 hover:bg-gray-800 transition-colors disabled:opacity-50 self-start"
+          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 self-start"
         >
           {creating ? 'Adding...' : 'Add Question'}
         </button>
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}
       </form>
 
       {/* Question list */}
       {questions.length === 0 ? (
-        <p className="text-gray-500">No questions yet.</p>
+        <p className="text-gray-500 dark:text-gray-400">No questions yet.</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {questions.map((q) =>
             editingId === q.documentId ? (
-              <li key={q.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
+              <li key={q.id} className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl p-4 flex flex-col gap-3">
                 <input
                   type="text"
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2"
+                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
                 />
                 {editOptions.map((opt, i) => (
                   <div key={i} className="flex items-center gap-2">
@@ -242,7 +242,7 @@ function TopicQuestionsContent() {
                         next[i] = e.target.value;
                         setEditOptions(next);
                       }}
-                      className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+                      className="flex-1 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
                     />
                   </div>
                 ))}
@@ -250,48 +250,48 @@ function TopicQuestionsContent() {
                   value={editExplanation}
                   onChange={(e) => setEditExplanation(e.target.value)}
                   placeholder="Explanation"
-                  className="border border-gray-300 rounded-md px-3 py-2"
+                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
                   rows={2}
                 />
                 <div className="flex gap-3">
                   <button
                     onClick={() => saveEdit(q.documentId)}
                     disabled={saving}
-                    className="bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800 transition-colors disabled:opacity-50"
+                    className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-4 py-2 text-sm hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50"
                   >
                     {saving ? 'Saving...' : 'Save'}
                   </button>
-                  <button onClick={() => setEditingId(null)} className="text-sm underline text-gray-600">
+                  <button onClick={() => setEditingId(null)} className="text-sm underline text-gray-600 dark:text-gray-400">
                     Cancel
                   </button>
                 </div>
               </li>
             ) : (
-              <li key={q.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
+              <li key={q.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm">
                 <div className="flex justify-between items-start">
-                  <p className="font-medium text-gray-900">{q.text}</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{q.text}</p>
                   <div className="flex gap-3 shrink-0 ml-4">
-                    <button onClick={() => startEdit(q)} className="text-sm underline text-gray-700">
+                    <button onClick={() => startEdit(q)} className="text-sm underline text-gray-700 dark:text-gray-300">
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(q.documentId)}
-                      className="text-sm text-red-600 underline"
+                      className="text-sm text-red-600 dark:text-red-400 underline"
                     >
                       Delete
                     </button>
                   </div>
                 </div>
-                <ul className="mt-2 text-sm text-gray-600">
+                <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                   {q.options?.map((opt, i) => (
-                    <li key={i} className={i === q.correctOptionIndex ? 'text-green-600 font-medium' : ''}>
+                    <li key={i} className={i === q.correctOptionIndex ? 'text-green-600 dark:text-green-400 font-medium' : ''}>
                       {i === q.correctOptionIndex ? '✓ ' : '– '}
                       {opt}
                     </li>
                   ))}
                 </ul>
                 {q.correctOptionIndex === null && (
-                  <p className="text-xs text-amber-600 mt-1">⚠ No correct answer set yet</p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">⚠ No correct answer set yet</p>
                 )}
               </li>
             )
@@ -304,17 +304,17 @@ function TopicQuestionsContent() {
           <button
             onClick={() => loadData(page - 1)}
             disabled={page <= 1}
-            className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50"
+            className="px-3 py-1 border border-gray-300 dark:border-gray-700 rounded-md text-sm disabled:opacity-50"
           >
             Prev
           </button>
-          <span className="text-sm text-gray-600 px-2 py-1">
+          <span className="text-sm text-gray-600 dark:text-gray-400 px-2 py-1">
             Page {page} of {pageCount}
           </span>
           <button
             onClick={() => loadData(page + 1)}
             disabled={page >= pageCount}
-            className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50"
+            className="px-3 py-1 border border-gray-300 dark:border-gray-700 rounded-md text-sm disabled:opacity-50"
           >
             Next
           </button>

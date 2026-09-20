@@ -14,6 +14,15 @@ type Topic = {
   questions?: { id: number }[];
 };
 
+const inputCls =
+  'w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-white/20 focus:border-gray-400 dark:focus:border-gray-500';
+
+const primaryBtn =
+  'bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200 rounded-md px-4 py-2 text-sm transition-colors disabled:opacity-50';
+
+const actionLink =
+  'text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white underline underline-offset-4 decoration-gray-300 dark:decoration-gray-700 hover:decoration-current';
+
 function TopicsContent() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [name, setName] = useState('');
@@ -85,93 +94,101 @@ function TopicsContent() {
     await loadTopics();
   };
 
-  if (loading) return <p className="p-8">Loading...</p>;
+  if (loading) return <p className="p-8 text-gray-500 dark:text-gray-400">Loading...</p>;
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6 text-gray-900">Manage Topics</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">Manage Topics</h1>
 
-      <form onSubmit={handleCreate} className="flex flex-col gap-3 mb-8 bg-white border border-gray-200 rounded-xl shadow-sm p-4">
+      <form
+        onSubmit={handleCreate}
+        className="flex flex-col gap-3 mb-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm dark:shadow-none p-4"
+      >
         <input
           type="text"
           required
           placeholder="Topic name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className={inputCls}
         />
         <input
           type="text"
           placeholder="Description (optional)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className={inputCls}
         />
-        <button
-          type="submit"
-          disabled={creating}
-          className="bg-gray-900 text-white rounded-md px-4 py-2 hover:bg-gray-800 transition-colors disabled:opacity-50 self-start"
-        >
+        <button type="submit" disabled={creating} className={`${primaryBtn} self-start`}>
           {creating ? 'Creating...' : 'Create Topic'}
         </button>
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}
       </form>
 
       {topics.length === 0 ? (
-        <p className="text-gray-500">No topics yet.</p>
+        <p className="text-gray-500 dark:text-gray-400">No topics yet.</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {topics.map((topic) =>
             editingId === topic.documentId ? (
-              <li key={topic.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
+              <li
+                key={topic.id}
+                className="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 flex flex-col gap-3"
+              >
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2"
+                  className={inputCls}
                 />
                 <input
                   type="text"
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2"
+                  className={inputCls}
                   placeholder="Description"
                 />
-                <div className="flex gap-3">
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => saveEdit(topic.documentId)}
                     disabled={saving}
-                    className="bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800 transition-colors disabled:opacity-50"
+                    className={primaryBtn}
                   >
                     {saving ? 'Saving...' : 'Save'}
                   </button>
-                  <button onClick={() => setEditingId(null)} className="text-sm underline text-gray-600">
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                  >
                     Cancel
                   </button>
                 </div>
               </li>
             ) : (
-              <li key={topic.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm flex justify-between items-center">
-                <div>
-                  <p className="font-medium text-gray-900">{topic.name}</p>
-                  <p className="text-sm text-gray-500">
+              <li
+                key={topic.id}
+                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm dark:shadow-none flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{topic.name}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {topic.questions?.length ?? 0} questions
                     {topic.description && ` — ${topic.description}`}
                   </p>
                 </div>
-                <div className="flex gap-3 shrink-0 ml-4">
-                  <Link href={`/admin/topics/${topic.documentId}`} className="text-sm underline text-gray-700">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 shrink-0">
+                  <Link href={`/admin/topics/${topic.documentId}`} className={actionLink}>
                     Manage Questions
                   </Link>
-                  <Link href={`/admin/topics/${topic.documentId}/written`} className="text-sm underline text-gray-700">
+                  <Link href={`/admin/topics/${topic.documentId}/written`} className={actionLink}>
                     Manage Written (CQ)
                   </Link>
-                  <button onClick={() => startEdit(topic)} className="text-sm underline text-gray-700">
+                  <button onClick={() => startEdit(topic)} className={actionLink}>
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(topic.documentId)}
-                    className="text-sm text-red-600 underline"
+                    className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 underline underline-offset-4 decoration-red-200 dark:decoration-red-500/30 hover:decoration-current"
                   >
                     Delete
                   </button>

@@ -70,11 +70,11 @@ function LessonDetailContent() {
 
   return (
     <div className="p-8 max-w-2xl mx-auto">
-      <a href={`/my-courses/${courseId}`} className="text-sm underline mb-4 inline-block text-gray-600">
+      <a href={`/my-courses/${courseId}`} className="text-sm underline mb-4 inline-block text-gray-600 dark:text-gray-400">
         ← Back to course
       </a>
 
-      <h1 className="text-2xl font-semibold mb-4 text-gray-900">
+      <h1 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
         {lesson.order != null && `${lesson.order}. `}
         {lesson.title}
       </h1>
@@ -90,22 +90,22 @@ function LessonDetailContent() {
           <img
             src={lesson.imageUrl}
             alt={lesson.title}
-            className="w-full rounded-lg border border-gray-200"
+            className="w-full rounded-lg border border-gray-200 dark:border-gray-800"
           />
         </div>
       )}
 
       {lesson.content && (
-        <p className="whitespace-pre-wrap text-gray-800 mb-8">{extractText(lesson.content)}</p>
+        <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 mb-8">{extractText(lesson.content)}</p>
       )}
 
       {isCompleted ? (
-        <span className="text-green-600 text-sm font-medium">✓ Completed</span>
+        <span className="text-green-600 dark:text-green-400 text-sm font-medium">✓ Completed</span>
       ) : (
         <button
           onClick={handleMarkComplete}
           disabled={marking}
-          className="bg-gray-900 text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800 transition-colors disabled:opacity-50 shadow-sm"
+          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-4 py-2 text-sm hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 shadow-sm"
         >
           {marking ? 'Saving...' : 'Mark as Complete'}
         </button>

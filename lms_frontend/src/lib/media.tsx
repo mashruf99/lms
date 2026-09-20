@@ -35,7 +35,7 @@ export function VideoEmbed({ url }: { url: string }) {
   }
 
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm underline text-blue-600">
+    <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm underline text-blue-600 dark:text-blue-400">
       Watch video ↗
     </a>
   );

@@ -90,8 +90,8 @@ function ReviewContent() {
   if (!current) {
     return (
       <div className="p-8 max-w-2xl mx-auto text-center">
-        <h1 className="text-2xl font-semibold mb-2 text-gray-900">All caught up 🎉</h1>
-        <p className="text-gray-600">No questions currently need an answer set.</p>
+        <h1 className="text-2xl font-semibold mb-2 text-gray-900 dark:text-gray-100">All caught up 🎉</h1>
+        <p className="text-gray-600 dark:text-gray-400">No questions currently need an answer set.</p>
       </div>
     );
   }
@@ -99,20 +99,20 @@ function ReviewContent() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Set Correct Answers</h1>
-        <span className="text-sm text-gray-500">
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Set Correct Answers</h1>
+        <span className="text-sm text-gray-500 dark:text-gray-400">
           {total} remaining · {reviewedCount} reviewed this session
         </span>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6">
         {current.topic && (
-          <span className="inline-block text-xs bg-gray-100 text-gray-600 rounded-full px-3 py-1 mb-3">
+          <span className="inline-block text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full px-3 py-1 mb-3">
             {current.topic.name}
           </span>
         )}
 
-        <p className="font-medium text-gray-900 mb-4">{current.text}</p>
+        <p className="font-medium text-gray-900 dark:text-gray-100 mb-4">{current.text}</p>
 
         <div className="flex flex-col gap-2 mb-4">
           {current.options?.map((opt, i) => (
@@ -120,8 +120,8 @@ function ReviewContent() {
               key={i}
               className={`flex items-center gap-3 border rounded-lg px-4 py-2 cursor-pointer transition-colors ${
                 selectedOption === i
-                  ? 'border-gray-900 bg-gray-50'
-                  : 'border-gray-200 hover:bg-gray-50'
+                  ? 'border-gray-900 dark:border-gray-100 bg-gray-50 dark:bg-gray-800/50'
+                  : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50'
               }`}
             >
               <input
@@ -130,26 +130,26 @@ function ReviewContent() {
                 checked={selectedOption === i}
                 onChange={() => setSelectedOption(i)}
               />
-              <span className="text-sm text-gray-800">{opt}</span>
+              <span className="text-sm text-gray-800 dark:text-gray-200">{opt}</span>
             </label>
           ))}
         </div>
 
-        <label className="block text-xs text-gray-500 mb-1">Citation / source (optional)</label>
+        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Citation / source (optional)</label>
         <input
           type="text"
           placeholder="e.g. Combined Bank Officer (IT) 04.10.2024 compact it 13 (ET: BIBM)"
           value={citation}
           onChange={(e) => setCitation(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mb-3"
+          className="w-full border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 text-sm mb-3"
         />
 
-        <label className="block text-xs text-gray-500 mb-1">Explanation (optional)</label>
+        <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Explanation (optional)</label>
         <textarea
           placeholder="Explanation"
           value={explanation}
           onChange={(e) => setExplanation(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mb-4"
+          className="w-full border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 text-sm mb-4"
           rows={2}
         />
 
@@ -157,13 +157,13 @@ function ReviewContent() {
           <button
             onClick={handleSubmit}
             disabled={selectedOption === null || saving}
-            className="bg-gray-900 text-white rounded-md px-5 py-2 text-sm hover:bg-gray-800 transition-colors disabled:opacity-50"
+            className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-5 py-2 text-sm hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save & Next'}
           </button>
           <button
             onClick={handleSkip}
-            className="text-sm text-gray-500 underline"
+            className="text-sm text-gray-500 dark:text-gray-400 underline"
           >
             Skip for now
           </button>

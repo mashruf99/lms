@@ -40,7 +40,7 @@ function MyCoursesContent() {
 
       {enrollments.length === 0 ? (
         <div>
-          <p className="text-gray-500 mb-4">You haven&apos;t enrolled in any courses yet.</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">You haven&apos;t enrolled in any courses yet.</p>
           <Link href="/courses" className="underline">
             Browse courses
           </Link>

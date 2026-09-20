@@ -49,23 +49,23 @@ function PostBody() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       {loading ? (
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
       ) : notFound || !post ? (
-        <p className="text-gray-500">Post not found.</p>
+        <p className="text-gray-500 dark:text-gray-400">Post not found.</p>
       ) : (
         <>
-          <a href="/blog" className="text-sm underline mb-4 inline-block text-gray-600">
+          <a href="/blog" className="text-sm underline mb-4 inline-block text-gray-600 dark:text-gray-400">
             ← Back to Blog
           </a>
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-            <h1 className="text-2xl font-semibold mb-2 text-gray-900">{post.title}</h1>
-            <p className="text-xs text-gray-500 mb-6">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6">
+            <h1 className="text-2xl font-semibold mb-2 text-gray-900 dark:text-gray-100">{post.title}</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
               {new Date(post.createdAt).toLocaleDateString()}
             </p>
             {post.coverImageUrl && (
-              <p className="text-sm text-gray-600 mb-4">Cover: {post.coverImageUrl}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Cover: {post.coverImageUrl}</p>
             )}
-            <p className="whitespace-pre-wrap text-gray-800">{extractText(post.body)}</p>
+            <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-200">{extractText(post.body)}</p>
           </div>
         </>
       )}
@@ -89,7 +89,7 @@ export default function BlogPostPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-800/50">
       <PublicHeader />
       <PostBody />
     </div>

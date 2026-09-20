@@ -153,27 +153,27 @@ function ManageLessonsContent() {
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
-      <a href="/courses/manage" className="text-sm underline mb-4 inline-block text-gray-600">
+      <a href="/courses/manage" className="text-sm underline mb-4 inline-block text-gray-600 dark:text-gray-400">
         ← Back to Courses
       </a>
-      <h1 className="text-2xl font-semibold mb-6 text-gray-900">
+      <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
         Lessons — {course?.title ?? 'Course'}
       </h1>
 
-      <form onSubmit={handleCreate} className="flex flex-col gap-3 mb-8 bg-white border border-gray-200 rounded-xl shadow-sm p-4">
+      <form onSubmit={handleCreate} className="flex flex-col gap-3 mb-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-4">
         <input
           type="text"
           required
           placeholder="Lesson title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
         />
         <textarea
           placeholder="Lesson content (text)"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
           rows={3}
         />
         <input
@@ -181,49 +181,49 @@ function ManageLessonsContent() {
           placeholder="Video URL (YouTube link or direct .mp4 link, optional)"
           value={videoUrl}
           onChange={(e) => setVideoUrl(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
         />
         <input
           type="text"
           placeholder="Image URL (optional)"
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
         />
         <input
           type="number"
           placeholder="Order (e.g. 1, 2, 3)"
           value={order}
           onChange={(e) => setOrder(e.target.value)}
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
         />
         <button
           type="submit"
           disabled={creating}
-          className="bg-gray-900 text-white rounded-md px-4 py-2 hover:bg-gray-800 transition-colors disabled:opacity-50 self-start shadow-sm"
+          className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 self-start shadow-sm"
         >
           {creating ? 'Adding...' : 'Add Lesson'}
         </button>
-        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}
       </form>
 
       {lessons.length === 0 ? (
-        <p className="text-gray-500">No lessons yet.</p>
+        <p className="text-gray-500 dark:text-gray-400">No lessons yet.</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {lessons.map((lesson) =>
             editingId === lesson.documentId ? (
-              <li key={lesson.id} className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
+              <li key={lesson.id} className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl p-4 flex flex-col gap-3">
                 <input
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2"
+                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
                 />
                 <textarea
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2"
+                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
                   rows={3}
                 />
                 <input
@@ -231,59 +231,59 @@ function ManageLessonsContent() {
                   placeholder="Video URL"
                   value={editVideoUrl}
                   onChange={(e) => setEditVideoUrl(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2"
+                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
                 />
                 <input
                   type="text"
                   placeholder="Image URL"
                   value={editImageUrl}
                   onChange={(e) => setEditImageUrl(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2"
+                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
                 />
                 <input
                   type="number"
                   placeholder="Order"
                   value={editOrder}
                   onChange={(e) => setEditOrder(e.target.value)}
-                  className="border border-gray-300 rounded-md px-3 py-2"
+                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
                 />
                 <div className="flex gap-3">
                   <button
                     onClick={() => saveEdit(lesson.documentId)}
                     disabled={saving}
-                    className="bg-gray-900 text-white rounded-md px-4 py-2 hover:bg-gray-800 transition-colors disabled:opacity-50"
+                    className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-md px-4 py-2 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50"
                   >
                     {saving ? 'Saving...' : 'Save'}
                   </button>
-                  <button onClick={cancelEdit} className="underline text-gray-600">
+                  <button onClick={cancelEdit} className="underline text-gray-600 dark:text-gray-400">
                     Cancel
                   </button>
                 </div>
               </li>
             ) : (
-              <li key={lesson.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm flex justify-between items-start">
+              <li key={lesson.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm flex justify-between items-start">
                 <div>
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
                     {lesson.order != null && `${lesson.order}. `}
                     {lesson.title}
                   </p>
                   {lesson.content && (
-                    <p className="text-sm text-gray-600 mt-1">{extractText(lesson.content)}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{extractText(lesson.content)}</p>
                   )}
                   {lesson.videoUrl && (
-                    <p className="text-xs text-gray-500 mt-1">🎬 {lesson.videoUrl}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">🎬 {lesson.videoUrl}</p>
                   )}
                   {lesson.imageUrl && (
-                    <p className="text-xs text-gray-500 mt-1">🖼 {lesson.imageUrl}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">🖼 {lesson.imageUrl}</p>
                   )}
                 </div>
                 <div className="flex gap-3 shrink-0 ml-4">
-                  <button onClick={() => startEdit(lesson)} className="text-sm underline text-gray-700">
+                  <button onClick={() => startEdit(lesson)} className="text-sm underline text-gray-700 dark:text-gray-300">
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(lesson.documentId)}
-                    className="text-sm text-red-600 underline"
+                    className="text-sm text-red-600 dark:text-red-400 underline"
                   >
                     Delete
                   </button>

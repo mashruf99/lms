@@ -64,47 +64,47 @@ function CourseViewerContent() {
 
   return (
     <div className="p-8 max-w-2xl mx-auto">
-      <Link href="/my-courses" className="text-sm underline mb-4 inline-block text-gray-600">
+      <Link href="/my-courses" className="text-sm underline mb-4 inline-block text-gray-600 dark:text-gray-400">
         ← Back to My Courses
       </Link>
       <div className="flex justify-between items-center mb-2">
-        <h1 className="text-2xl font-semibold text-gray-900">{courseTitle}</h1>
-        <Link href={`/my-courses/${courseId}/quiz`} className="text-sm underline text-gray-700">
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{courseTitle}</h1>
+        <Link href={`/my-courses/${courseId}/quiz`} className="text-sm underline text-gray-700 dark:text-gray-300">
           Take Quiz
         </Link>
       </div>
 
       <div className="mb-8">
-        <div className="flex justify-between text-sm mb-1 text-gray-700">
+        <div className="flex justify-between text-sm mb-1 text-gray-700 dark:text-gray-300">
           <span>
             Progress: {completedCount} of {totalCount} lessons
           </span>
           <span>{percent}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div
-            className="bg-gray-900 h-2 rounded-full transition-all"
+            className="bg-gray-900 dark:bg-gray-100 h-2 rounded-full transition-all"
             style={{ width: `${percent}%` }}
           />
         </div>
       </div>
 
       {lessons.length === 0 ? (
-        <p className="text-gray-500">No lessons in this course yet.</p>
+        <p className="text-gray-500 dark:text-gray-400">No lessons in this course yet.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {lessons.map((lesson) => (
             <li key={lesson.id}>
               <Link
                 href={`/my-courses/${courseId}/lessons/${lesson.documentId}`}
-                className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow"
+                className="flex items-center justify-between bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow"
               >
-                <span className="text-gray-900">
+                <span className="text-gray-900 dark:text-gray-100">
                   {lesson.order != null && `${lesson.order}. `}
                   {lesson.title}
                 </span>
                 {isCompleted(lesson.id) && (
-                  <span className="text-green-600 text-sm font-medium">✓ Completed</span>
+                  <span className="text-green-600 dark:text-green-400 text-sm font-medium">✓ Completed</span>
                 )}
               </Link>
             </li>

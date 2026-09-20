@@ -146,7 +146,7 @@ function ManageQuizContent() {
       </a>
       <h1 className="text-2xl font-semibold mb-6">Quiz — {course?.title}</h1>
 
-      {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p className="text-red-600 dark:text-red-400 text-sm mb-4">{error}</p>}
 
       {!quiz ? (
         <form onSubmit={handleCreateQuiz} className="flex gap-2 mb-8">
@@ -200,7 +200,7 @@ function ManageQuizContent() {
                 />
               </div>
             ))}
-            <p className="text-xs text-gray-500">Select the radio button next to the correct answer.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Select the radio button next to the correct answer.</p>
             <button
               type="submit"
               disabled={addingQuestion}
@@ -211,7 +211,7 @@ function ManageQuizContent() {
           </form>
 
           {questions.length === 0 ? (
-            <p className="text-gray-500">No questions yet.</p>
+            <p className="text-gray-500 dark:text-gray-400">No questions yet.</p>
           ) : (
             <ul className="flex flex-col gap-3">
               {questions.map((q, idx) => (
@@ -222,14 +222,14 @@ function ManageQuizContent() {
                     </p>
                     <button
                       onClick={() => handleDeleteQuestion(q.documentId)}
-                      className="text-sm text-red-600 underline shrink-0 ml-4"
+                      className="text-sm text-red-600 dark:text-red-400 underline shrink-0 ml-4"
                     >
                       Delete
                     </button>
                   </div>
-                  <ul className="mt-2 text-sm text-gray-600">
+                  <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                     {q.options?.map((opt, i) => (
-                      <li key={i} className={i === q.correctOptionIndex ? 'text-green-600 font-medium' : ''}>
+                      <li key={i} className={i === q.correctOptionIndex ? 'text-green-600 dark:text-green-400 font-medium' : ''}>
                         {i === q.correctOptionIndex ? '✓ ' : '– '}
                         {opt}
                       </li>
