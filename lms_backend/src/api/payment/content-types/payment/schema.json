@@ -61,7 +61,7 @@
     "verifiedBy": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "admin::user"
+      "target": "plugin::users-permissions.user"
     },
     "notes": {
       "type": "text"
