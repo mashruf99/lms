@@ -76,17 +76,6 @@
       "type": "enumeration",
       "enum": ["pending", "approved", "rejected"],
       "default": "pending"
-    },
-    "accessExpiresAt": {
-      "type": "datetime"
-    },
-    "payments": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::payment.payment",
-      "mappedBy": "user"
-    } 
+    }
   }
 }
-
-

@@ -520,6 +520,58 @@ export interface ApiBlogPostBlogPost extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiPaymentPayment extends Struct.CollectionTypeSchema {
+  collectionName: 'payments';
+  info: {
+    description: 'Manual mobile-banking payments for monthly subscription';
+    displayName: 'Payment';
+    pluralName: 'payments';
+    singularName: 'payment';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    amount: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<99>;
+    approval_status: Schema.Attribute.Enumeration<
+      ['pending', 'approved', 'rejected']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::payment.payment'
+    > &
+      Schema.Attribute.Private;
+    notes: Schema.Attribute.Text;
+    paymentMethod: Schema.Attribute.Enumeration<['bkash', 'nagad', 'rocket']> &
+      Schema.Attribute.Required;
+    periodEnd: Schema.Attribute.DateTime;
+    periodStart: Schema.Attribute.DateTime;
+    publishedAt: Schema.Attribute.DateTime;
+    rejectionReason: Schema.Attribute.Text;
+    senderNumber: Schema.Attribute.String & Schema.Attribute.Required;
+    submittedAt: Schema.Attribute.DateTime;
+    transactionId: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    verifiedBy: Schema.Attribute.Relation<'manyToOne', 'admin::user'>;
+  };
+}
+
 export interface ApiQuestionQuestion extends Struct.CollectionTypeSchema {
   collectionName: 'questions';
   info: {
@@ -1075,6 +1127,7 @@ export interface PluginUsersPermissionsUser
     draftAndPublish: false;
   };
   attributes: {
+    accessExpiresAt: Schema.Attribute.DateTime;
     approvalStatus: Schema.Attribute.Enumeration<
       ['pending', 'approved', 'rejected']
     > &
@@ -1105,6 +1158,7 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    payments: Schema.Attribute.Relation<'oneToMany', 'api::payment.payment'>;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     resetPasswordToken: Schema.Attribute.String & Schema.Attribute.Private;
@@ -1137,6 +1191,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::attempt.attempt': ApiAttemptAttempt;
       'api::blog-post.blog-post': ApiBlogPostBlogPost;
+      'api::payment.payment': ApiPaymentPayment;
       'api::question.question': ApiQuestionQuestion;
       'api::topic.topic': ApiTopicTopic;
       'api::written-question.written-question': ApiWrittenQuestionWrittenQuestion;

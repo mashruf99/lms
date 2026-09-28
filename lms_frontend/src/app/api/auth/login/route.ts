@@ -21,12 +21,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check approval status before granting a session
-    const profileRes = await fetch(`${STRAPI_URL}/api/my-profile`, {
-      headers: { Authorization: `Bearer ${data.jwt}` },
-    });
-    const profileData = await profileRes.json();
-    const approvalStatus = profileData.user?.approvalStatus;
+        // Check approval status before granting a session
+    let approvalStatus: string | undefined;
+    try {
+      const profileRes = await fetch(`${STRAPI_URL}/api/my-profile`, {
+        headers: { Authorization: `Bearer ${data.jwt}` },
+      });
+
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        approvalStatus = profileData?.user?.approvalStatus;
+      } else {
+        // Non-OK (e.g. rate-limited). Don't block login for a transient
+        // profile-fetch issue — let the user in and the client will
+        // recheck approval on subsequent requests.
+        console.warn(
+          `[login] profile fetch failed with ${profileRes.status}, allowing login`
+        );
+        approvalStatus = 'approved';
+      }
+    } catch (err) {
+      console.error('[login] profile fetch threw, allowing login:', err);
+      approvalStatus = 'approved';
+    }
 
     if (approvalStatus === 'pending') {
       return NextResponse.json(

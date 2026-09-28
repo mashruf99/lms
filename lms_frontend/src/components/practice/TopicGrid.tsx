@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 type TopicSummary = {
   topicId: string;
@@ -17,7 +20,13 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
   const [topics, setTopics] = useState<TopicSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [startingId, setStartingId] = useState<string | null>(null);
+  const [pendingTopic, setPendingTopic] = useState<TopicSummary | null>(null);
   const router = useRouter();
+  const { user } = useAuth();
+
+  // ─── Subscription state ─────────────────────────────────
+  const expiry = user?.accessExpiresAt ? new Date(user.accessExpiresAt) : null;
+  const subscriptionActive = !!expiry && expiry.getTime() > Date.now();
 
   useEffect(() => {
     const load = async () => {
@@ -59,17 +68,40 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
         {type === 'mcq' ? 'MCQ Topics' : 'CQ Topics'}
       </h1>
       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-6">
-        Choose a topic to start a practice session.
+        {subscriptionActive
+          ? 'Choose a topic to start a practice session.'
+          : 'Browse topics below. Renew to start practicing.'}
       </p>
+
+      {/* Subscription warning banner (only when expired) */}
+      {!subscriptionActive && (
+        <div className="mb-6 px-4 py-3 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-sm text-red-800 dark:text-red-300 flex items-center justify-between gap-4">
+          <span>
+            <strong>Your subscription has expired.</strong> You can view past
+            attempts but can't start new sessions.
+          </span>
+          <Link
+            href="/renew"
+            className="underline font-medium text-red-900 dark:text-red-200 whitespace-nowrap"
+          >
+            Renew now
+          </Link>
+        </div>
+      )}
 
       {topics.length === 0 ? (
         <p className="text-gray-500 dark:text-gray-400">No topics available yet.</p>
       ) : (
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
           {topics.map((t) => {
-            const disabled = t.totalQuestions === 0 || startingId !== null;
+            const hasQuestions = t.totalQuestions > 0;
+            const isStarting = startingId === t.topicId;
+            const startDisabled = !hasQuestions || startingId !== null;
+
             const pct =
-              t.totalQuestions > 0 ? Math.round((t.seenCount / t.totalQuestions) * 100) : 0;
+              t.totalQuestions > 0
+                ? Math.round((t.seenCount / t.totalQuestions) * 100)
+                : 0;
 
             return (
               <div
@@ -77,14 +109,16 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
                 className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm dark:shadow-none p-5 flex flex-col justify-between gap-4"
               >
                 <div>
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">{t.name}</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                    {t.name}
+                  </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {t.totalQuestions === 0
+                    {!hasQuestions
                       ? 'No questions available yet'
                       : `${t.seenCount}/${t.totalQuestions} seen`}
                   </p>
 
-                  {t.totalQuestions > 0 && (
+                  {hasQuestions && (
                     <div
                       className="mt-2 h-1.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden"
                       role="progressbar"
@@ -106,22 +140,52 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
                   )}
                 </div>
 
-                <button
-                  onClick={() => handleStart(t.topicId)}
-                  disabled={disabled}
-                  className="bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200 rounded-md px-4 py-2 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {startingId === t.topicId
-                    ? 'Starting...'
-                    : t.attemptCount > 0
-                    ? 'Retry'
-                    : 'Start'}
-                </button>
+                {/* Button — state-dependent */}
+                {subscriptionActive ? (
+                  <button
+                    onClick={() => setPendingTopic(t)}
+                    disabled={startDisabled}
+                    className="bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200 rounded-md px-4 py-2 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {isStarting
+                      ? 'Starting...'
+                      : t.attemptCount > 0
+                      ? 'Retry'
+                      : 'Start'}
+                  </button>
+                ) : (
+                  <Link
+                    href="/renew"
+                    className={`rounded-md px-4 py-2 text-sm transition-colors text-center ${
+                      hasQuestions
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 pointer-events-none'
+                    }`}
+                  >
+                    {hasQuestions ? 'Renew to start' : 'Renew'}
+                  </Link>
+                )}
               </div>
             );
           })}
         </div>
       )}
+
+      <ConfirmModal
+        open={pendingTopic !== null}
+        title="Start practice session?"
+        message={
+          pendingTopic
+            ? `Are you sure you want to start ${pendingTopic.name} ${type.toUpperCase()}?`
+            : ''
+        }
+        confirmLabel="Start"
+        onConfirm={() => {
+          if (pendingTopic && subscriptionActive) handleStart(pendingTopic.topicId);
+          setPendingTopic(null);
+        }}
+        onCancel={() => setPendingTopic(null)}
+      />
     </div>
   );
 }

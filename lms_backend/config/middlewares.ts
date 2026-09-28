@@ -15,10 +15,22 @@ const config: Core.Config.Middlewares = [
       credentials: true,
     },
   },
+  {
+    name: 'global::rate-limit',
+    config: {},
+  },
+  {
+    name: 'global::session-check',
+    config: {},
+  },
   'strapi::poweredBy',
   'strapi::query',
   'strapi::body',
   'strapi::session',
+  {
+    name: 'global::session-cap',
+    config: {},
+  },
   'strapi::favicon',
   'strapi::public',
 ];

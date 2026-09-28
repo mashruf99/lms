@@ -42,6 +42,24 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin =>
       },
     },
   },
+  email: {
+    config: {
+      provider: 'nodemailer',
+      providerOptions: {
+        host: 'smtp.resend.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: 'resend',
+          pass: env('RESEND_API_KEY'),
+        },
+      },
+      settings: {
+        defaultFrom: 'onboarding@resend.dev',
+        defaultReplyTo: 'onboarding@resend.dev',
+      },
+    },
+  },
 });
 
 export default config;

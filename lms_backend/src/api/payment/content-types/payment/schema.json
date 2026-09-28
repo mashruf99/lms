@@ -1,0 +1,70 @@
+{
+  "kind": "collectionType",
+  "collectionName": "payments",
+  "info": {
+    "singularName": "payment",
+    "pluralName": "payments",
+    "displayName": "Payment",
+    "description": "Manual mobile-banking payments for monthly subscription"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "payments",
+      "index": "true"
+    },
+    "transactionId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "paymentMethod": {
+      "type": "enumeration",
+      "enum": ["bkash", "nagad", "rocket"],
+      "required": true
+    },
+    "senderNumber": {
+      "type": "string",
+      "required": true
+    },
+    "amount": {
+      "type": "integer",
+      "required": true,
+      "default": 99
+    },
+    "approval_status": {
+      "type": "enumeration",
+      "enum": ["pending", "approved", "rejected"],
+      "default": "pending",
+      "required": true,
+      "index": true
+    },
+    "rejectionReason": {
+      "type": "text"
+    },
+    "periodStart": {
+      "type": "datetime"
+    },
+    "periodEnd": {
+      "type": "datetime"
+    },
+    "submittedAt": {
+      "type": "datetime",
+      "index": true
+    },
+    "verifiedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "admin::user"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+}

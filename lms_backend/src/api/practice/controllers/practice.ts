@@ -25,6 +25,25 @@ async function assertApproved(strapi: any, user: any) {
   }
 }
 
+
+
+async function assertActiveSubscription(strapi: any, user: any) {
+  await assertApproved(strapi, user);
+
+  const active = await strapi
+    .service('api::payment.approval')
+    .hasActiveSubscription(strapi, user.id);
+
+  if (!active) {
+    const err: any = new Error(
+      'Your subscription has expired. Please renew to continue.'
+    );
+    err.status = 403;
+    err.name = 'ForbiddenError';
+    throw err;
+  }
+}
+
 export default {
   // GET /practice/topics?type=mcq|cq
   async topics(ctx: any) {
@@ -75,7 +94,7 @@ export default {
   // POST /practice/start  { topicId, type: 'mcq' | 'cq' }
   async start(ctx: any) {
     const user = ctx.state.user;
-    await assertApproved(strapi, user);
+    await assertActiveSubscription(strapi, user);
 
     const { topicId, type } = ctx.request.body;
 
@@ -168,7 +187,7 @@ export default {
   // POST /practice/submit  { attemptId, answers }
   async submit(ctx: any) {
     const user = ctx.state.user;
-    await assertApproved(strapi, user);
+    await assertActiveSubscription(strapi, user);
 
     const { attemptId, answers } = ctx.request.body;
 
@@ -231,13 +250,25 @@ export default {
       throw new NotFoundError('Attempt not found');
     }
 
-    if (attempt.type === 'mcq') {
+
+
+
+
+       if (attempt.type === 'mcq') {
       const questions = await strapi.db.query('api::question.question').findMany({
         where: { id: { $in: attempt.questionIds } },
       });
       const byId = new Map(questions.map((q: any) => [q.id, q]));
 
-      const items = attempt.questionIds.map((qid: number) => {
+      // Only include questions the student actually answered.
+      // Unanswered questions are deliberately hidden in review so a user
+      // cannot start a session, answer 2, and see the answer key for 28.
+      const answeredQids = attempt.questionIds.filter((qid: number) => {
+        const a = attempt.answers?.[qid];
+        return a !== null && a !== undefined;
+      });
+
+      const items = answeredQids.map((qid: number) => {
         const q: any = byId.get(qid);
         return {
           id: qid,
@@ -250,26 +281,46 @@ export default {
         };
       });
 
+      const totalQuestions = attempt.totalQuestions ?? attempt.questionIds.length;
+      const answeredCount = items.length;
+      const skippedCount = Math.max(0, totalQuestions - answeredCount);
+
       ctx.body = {
         data: {
           type: 'mcq',
           topicName: attempt.topic?.name,
           score: attempt.score,
           correctCount: attempt.correctCount,
-          totalQuestions: attempt.totalQuestions,
+          totalQuestions,
+          answeredCount,
+          skippedCount,
           items,
         },
       };
       return;
     }
 
-    // CQ review
+
+
+
+
+
+
+
+
+      // CQ review
     const questions = await strapi.db.query('api::written-question.written-question').findMany({
       where: { id: { $in: attempt.questionIds } },
     });
     const byId = new Map(questions.map((q: any) => [q.id, q]));
 
-    const items = attempt.questionIds.map((qid: number) => {
+    // Only include CQ questions where the student actually wrote something.
+    const answeredQids = attempt.questionIds.filter((qid: number) => {
+      const a = attempt.answers?.[qid];
+      return typeof a === 'string' && a.trim().length > 0;
+    });
+
+    const items = answeredQids.map((qid: number) => {
       const q: any = byId.get(qid);
       return {
         id: qid,
@@ -280,15 +331,30 @@ export default {
       };
     });
 
+    const totalQuestions = attempt.totalQuestions ?? attempt.questionIds.length;
+    const answeredCount = items.length;
+    const skippedCount = Math.max(0, totalQuestions - answeredCount);
+
     ctx.body = {
       data: {
         type: 'cq',
         topicName: attempt.topic?.name,
-        totalQuestions: attempt.totalQuestions,
+        totalQuestions,
+        answeredCount,
+        skippedCount,
         items,
       },
     };
   },
+
+
+
+
+
+
+
+
+
 
   // GET /practice/dashboard
   async dashboard(ctx: any) {
@@ -345,6 +411,25 @@ export default {
       ? Math.round(topicProgress.reduce((sum, t) => sum + t.bestScore, 0) / topicProgress.length)
       : 0;
 
+        // Recent attempts (latest first, capped at 20) — used by the dashboard
+    // to show links to review pages. Only completed attempts are included.
+    const recentAttempts = [...attempts]
+      .filter((a: any) => a.completedAt)
+      .sort(
+        (a: any, b: any) =>
+          new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+      )
+      .slice(0, 20)
+      .map((a: any) => ({
+        attemptId: a.documentId,
+        type: a.type,
+        topicName: a.topic?.name ?? 'Unknown',
+        score: a.type === 'mcq' ? a.score ?? null : null,
+        correctCount: a.type === 'mcq' ? a.correctCount ?? null : null,
+        totalQuestions: a.totalQuestions ?? null,
+        completedAt: a.completedAt,
+      }));
+
     ctx.body = {
       data: {
         totalAttempts: attempts.length,
@@ -354,7 +439,12 @@ export default {
         cqQuestionsSolved: cqQuestionsSolved.size,
         averageMcqScore: overallAvgScore,
         topicProgress,
+        recentAttempts,
       },
     };
+
+
+
+
   },
 };

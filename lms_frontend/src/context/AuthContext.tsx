@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 
 type User = {
   id: number;
@@ -10,6 +10,8 @@ type User = {
     id: number;
     name: string;
   };
+  approvalStatus?: 'pending' | 'approved' | 'rejected';
+  accessExpiresAt?: string | null;
 };
 
 type AuthContextType = {
@@ -26,17 +28,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
       const res = await fetch('/api/auth/me');
       const data = await res.json();
       setUser(data.user ?? null);
     } catch (err) {
       setUser(null);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -67,10 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     setUser(null);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider

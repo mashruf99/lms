@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
+import ConfirmModal from '@/components/ui/ConfirmModal';
+import TimeOverModal from '@/components/ui/TimeOverModal';
 
 type McqQuestion = { id: number; text: string; options: string[]; citation?: string | null };
 type CqQuestion = { id: number; text: string; marks?: number; citation?: string | null };
@@ -16,6 +18,9 @@ type StartedSession = {
   questions: (McqQuestion | CqQuestion)[];
   timeLimitSeconds: number;
 };
+
+const CQ_WARNING =
+  "Don't cheat. Write your answer under 4 minutes each — you can check the right script after finishing. There's no single absolute correct answer; write it based on your own understanding.";
 
 function SessionContent() {
   const params = useParams();
@@ -29,10 +34,11 @@ function SessionContent() {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
+  const [showTimeOver, setShowTimeOver] = useState(false);
   const submittedRef = useRef(false);
+  const timeUpRef = useRef(false);
 
-  // Session data is passed via sessionStorage from the starting page
-  // (attemptId in URL, question payload cached client-side since /practice/start already returned it)
   useEffect(() => {
     const cached = sessionStorage.getItem(`practice-session-${attemptId}`);
     if (cached) {
@@ -43,7 +49,7 @@ function SessionContent() {
     setLoading(false);
   }, [attemptId]);
 
-  const handleSubmit = useCallback(async () => {
+  const doSubmit = useCallback(async () => {
     if (submittedRef.current || !session) return;
     submittedRef.current = true;
     setSubmitting(true);
@@ -59,32 +65,39 @@ function SessionContent() {
     router.push(`/practice/review/${attemptId}`);
   }, [attemptId, session, mcqAnswers, cqAnswers, router]);
 
+  // Manual submit button -> confirm first
   const handleSubmitClick = () => {
     if (!session) return;
-    const answers = session.type === 'mcq' ? mcqAnswers : cqAnswers;
-    const answeredCount = Object.keys(answers).length;
-    const total = session.questions.length;
+    setShowSubmitConfirm(true);
+  };
 
-    if (answeredCount < total) {
-      const confirmed = confirm(
-        `You've answered ${answeredCount} of ${total} questions. Submit anyway?`
-      );
-      if (!confirmed) return;
-    }
+  const handleConfirmSubmit = () => {
+    setShowSubmitConfirm(false);
+    doSubmit();
+  };
 
-    handleSubmit();
+  // Timer running out -> show "Time Over" for 2s, then submit + navigate
+  const handleTimeUp = useCallback(() => {
+    if (timeUpRef.current || submittedRef.current) return;
+    timeUpRef.current = true;
+    setShowTimeOver(true);
+  }, []);
+
+  const handleTimeOverDone = () => {
+    setShowTimeOver(false);
+    doSubmit();
   };
 
   // Countdown timer
   useEffect(() => {
-    if (!session || submittedRef.current) return;
+    if (!session || submittedRef.current || timeUpRef.current) return;
     if (secondsLeft <= 0) {
-      handleSubmit();
+      handleTimeUp();
       return;
     }
     const timer = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
     return () => clearTimeout(timer);
-  }, [secondsLeft, session, handleSubmit]);
+  }, [secondsLeft, session, handleTimeUp]);
 
   if (loading) return <p className="p-8">Loading...</p>;
 
@@ -106,6 +119,14 @@ function SessionContent() {
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
   const timeUrgent = secondsLeft <= 30;
+  const isCq = session.type === 'cq';
+
+  const answers = isCq ? cqAnswers : mcqAnswers;
+  const answeredCount = Object.keys(answers).length;
+
+  const submitMessage = isCq
+    ? `${CQ_WARNING}\n\nAre you done writing?`
+    : `You've answered ${answeredCount} of ${total} questions.\n\nAre you sure you want to submit?`;
 
   const goNext = () => setIndex((i) => Math.min(i + 1, total - 1));
   const goPrev = () => setIndex((i) => Math.max(i - 1, 0));
@@ -121,7 +142,9 @@ function SessionContent() {
         </div>
         <div
           className={`text-lg font-mono font-semibold px-4 py-2 rounded-full ${
-            timeUrgent ? 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
+            timeUrgent
+              ? 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-300'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
           }`}
         >
           {minutes}:{seconds.toString().padStart(2, '0')}
@@ -203,6 +226,18 @@ function SessionContent() {
           </button>
         </div>
       </div>
+
+      <ConfirmModal
+        open={showSubmitConfirm}
+        title={isCq ? "Don't cheat" : 'Submit answers?'}
+        message={submitMessage}
+        confirmLabel="Submit"
+        cancelLabel="Keep working"
+        onConfirm={handleConfirmSubmit}
+        onCancel={() => setShowSubmitConfirm(false)}
+      />
+
+      <TimeOverModal open={showTimeOver} onDone={handleTimeOverDone} />
     </div>
   );
 }

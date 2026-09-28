@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
+import Link from 'next/link';
+
+
 
 type TopicProgress = {
   topicId: string;
@@ -15,6 +18,16 @@ type TopicProgress = {
   bestScore: number;
 };
 
+type RecentAttempt = {
+  attemptId: string;
+  type: 'mcq' | 'cq';
+  topicName: string;
+  score: number | null;
+  correctCount: number | null;
+  totalQuestions: number | null;
+  completedAt: string;
+};
+
 type DashboardData = {
   totalAttempts: number;
   mcqAttempts: number;
@@ -23,7 +36,21 @@ type DashboardData = {
   cqQuestionsSolved: number;
   averageMcqScore: number;
   topicProgress: TopicProgress[];
+  recentAttempts: RecentAttempt[];
 };
+
+
+function formatAttemptDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return iso;
+  }
+}
 
 function StudentDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -88,6 +115,48 @@ function StudentDashboard() {
           })}
         </ul>
       )}
+ 
+      {data.recentAttempts && data.recentAttempts.length > 0 && (
+        <>
+          <h2 className="text-lg font-medium mb-3 mt-10 text-gray-900 dark:text-gray-100">
+            Recent Attempts
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {data.recentAttempts.map((a) => (
+              <li
+                key={a.attemptId}
+                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3 shadow-sm flex items-center justify-between gap-4"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      {a.type}
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                      {a.topicName}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {a.type === 'mcq' && a.score !== null
+                      ? `${a.correctCount}/${a.totalQuestions} · ${a.score}%`
+                      : `${a.totalQuestions ?? 0} questions`}
+                    {' · '}
+                    {formatAttemptDate(a.completedAt)}
+                  </p>
+                </div>
+                <Link
+                  href={`/practice/review/${a.attemptId}`}
+                  className="text-sm underline text-gray-900 dark:text-gray-100 whitespace-nowrap"
+                >
+                  View
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+
     </div>
   );
 }

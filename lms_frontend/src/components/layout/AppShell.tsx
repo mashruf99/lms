@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
+import SubscriptionBar from './SubscriptionBar';
+
 
 type NavLink = { href: string; label: string };
 
@@ -19,6 +21,7 @@ const NAV_BY_ROLE: Record<string, NavLink[]> = {
   ],
   Student: [
     { href: '/dashboard', label: 'Dashboard' },
+    { href: '/renew', label: 'Renew' },
     { href: '/blog', label: 'Blog' },
   ],
 };
@@ -154,6 +157,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
+     <SubscriptionBar />     
+ 
       <main>{children}</main>
     </div>
   );

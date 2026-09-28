@@ -31,8 +31,11 @@ type ReviewData = {
   score?: number;
   correctCount?: number;
   totalQuestions: number;
+  answeredCount?: number;
+  skippedCount?: number;
   items: (McqItem | CqItem)[];
 };
+
 
 function ReviewContent() {
   const params = useParams();
@@ -93,7 +96,22 @@ function ReviewContent() {
         </a>
       </div>
 
+      {typeof data.skippedCount === 'number' && data.skippedCount > 0 && (
+        <div className="mb-6 px-4 py-3 rounded-md border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-sm text-amber-800 dark:text-amber-300">
+          You skipped <strong>{data.skippedCount}</strong>{' '}
+          {data.skippedCount === 1 ? 'question' : 'questions'}. Only answered questions
+          appear below. Re-attempt this topic to see the rest.
+        </div>
+      )}
+
+
       <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Review</h2>
+  
+      {data.items.length === 0 && (
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          You didn't answer any questions in this session.
+        </p>
+      )}
 
       <div className="flex flex-col gap-4">
         {data.items.map((item, idx) => {
