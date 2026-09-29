@@ -14,6 +14,13 @@ export default {
       config: { policies: [], auth: {} },
       info: { apiName: 'practice', type: 'content-api' },
     },
+        {
+      method: 'GET',
+      path: '/practice/topics/:topicId/attempts',
+      handler: 'practice.topicAttempts',
+      config: { policies: [], auth: {} },
+      info: { apiName: 'practice', type: 'content-api' },
+    },
     {
       method: 'POST',
       path: '/practice/submit',

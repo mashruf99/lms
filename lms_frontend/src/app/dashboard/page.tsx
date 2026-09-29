@@ -7,8 +7,6 @@ import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
 import Link from 'next/link';
 
-
-
 type TopicProgress = {
   topicId: string;
   name: string;
@@ -18,14 +16,16 @@ type TopicProgress = {
   bestScore: number;
 };
 
-type RecentAttempt = {
+type LatestAttempt = {
+  topicId: string;
+  topicName: string;
   attemptId: string;
   type: 'mcq' | 'cq';
-  topicName: string;
   score: number | null;
   correctCount: number | null;
   totalQuestions: number | null;
   completedAt: string;
+  totalAttemptsOnTopic: number;
 };
 
 type DashboardData = {
@@ -36,9 +36,8 @@ type DashboardData = {
   cqQuestionsSolved: number;
   averageMcqScore: number;
   topicProgress: TopicProgress[];
-  recentAttempts: RecentAttempt[];
+  latestPerTopic?: LatestAttempt[];
 };
-
 
 function formatAttemptDate(iso: string) {
   try {
@@ -69,62 +68,89 @@ function StudentDashboard() {
   if (loading) return <p className="p-8">Loading...</p>;
   if (!data) return <p className="p-8">Could not load dashboard.</p>;
 
+  const latest = data.latestPerTopic ?? [];
+
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">My Dashboard</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
+        My Dashboard
+      </h1>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm text-center">
-          <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{data.totalAttempts}</p>
+          <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {data.totalAttempts}
+          </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Attempts</p>
         </div>
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm text-center">
-          <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{data.mcqQuestionsSolved}</p>
+          <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {data.mcqQuestionsSolved}
+          </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">MCQ Solved</p>
         </div>
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm text-center">
-          <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{data.cqQuestionsSolved}</p>
+          <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {data.cqQuestionsSolved}
+          </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">CQ Solved</p>
         </div>
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm text-center">
-          <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{data.averageMcqScore}%</p>
+          <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            {data.averageMcqScore}%
+          </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Avg MCQ Score</p>
         </div>
       </div>
 
-      <h2 className="text-lg font-medium mb-3 text-gray-900 dark:text-gray-100">Progress by Topic</h2>
+      <h2 className="text-lg font-medium mb-3 text-gray-900 dark:text-gray-100">
+        Progress by Topic
+      </h2>
       {data.topicProgress.length === 0 ? (
-        <p className="text-gray-500 dark:text-gray-400">No practice sessions yet. Start practicing to see your progress here.</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          No practice sessions yet. Start practicing to see your progress here.
+        </p>
       ) : (
         <ul className="flex flex-col gap-3">
           {data.topicProgress.map((t) => {
-            const percent = t.totalQuestions > 0 ? Math.round((t.questionsSolved / t.totalQuestions) * 100) : 0;
+            const percent =
+              t.totalQuestions > 0
+                ? Math.round((t.questionsSolved / t.totalQuestions) * 100)
+                : 0;
             return (
-              <li key={t.topicId} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm">
+              <li
+                key={t.topicId}
+                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm"
+              >
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-medium text-gray-900 dark:text-gray-100">{t.name}</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {t.name}
+                  </span>
                   <span className="text-sm text-gray-500 dark:text-gray-400">
                     {t.questionsSolved}/{t.totalQuestions} · best {t.bestScore}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div className="bg-gray-900 dark:bg-gray-100 h-2 rounded-full" style={{ width: `${percent}%` }} />
+                  <div
+                    className="bg-gray-900 dark:bg-gray-100 h-2 rounded-full"
+                    style={{ width: `${percent}%` }}
+                  />
                 </div>
               </li>
             );
           })}
         </ul>
       )}
- 
-      {data.recentAttempts && data.recentAttempts.length > 0 && (
+
+      {latest.length > 0 && (
         <>
           <h2 className="text-lg font-medium mb-3 mt-10 text-gray-900 dark:text-gray-100">
-            Recent Attempts
+            Latest by Topic
           </h2>
           <ul className="flex flex-col gap-2">
-            {data.recentAttempts.map((a) => (
+            {latest.map((a) => (
               <li
-                key={a.attemptId}
+                key={a.topicId}
                 className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3 shadow-sm flex items-center justify-between gap-4"
               >
                 <div className="flex-1 min-w-0">
@@ -132,9 +158,12 @@ function StudentDashboard() {
                     <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                       {a.type}
                     </span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                    <Link
+                      href={`/practice/topics/${a.topicId}/attempts`}
+                      className="font-medium text-gray-900 dark:text-gray-100 truncate hover:underline"
+                    >
                       {a.topicName}
-                    </span>
+                    </Link>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {a.type === 'mcq' && a.score !== null
@@ -142,6 +171,17 @@ function StudentDashboard() {
                       : `${a.totalQuestions ?? 0} questions`}
                     {' · '}
                     {formatAttemptDate(a.completedAt)}
+                    {a.totalAttemptsOnTopic > 1 && (
+                      <>
+                        {' · '}
+                        <Link
+                          href={`/practice/topics/${a.topicId}/attempts`}
+                          className="underline"
+                        >
+                          {a.totalAttemptsOnTopic} attempts — see all
+                        </Link>
+                      </>
+                    )}
                   </p>
                 </div>
                 <Link
@@ -155,8 +195,6 @@ function StudentDashboard() {
           </ul>
         </>
       )}
-
-
     </div>
   );
 }
@@ -177,7 +215,9 @@ export default function DashboardPage() {
   }, [user, role, loading, router]);
 
   if (loading || !user || role === 'Admin') {
-    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center">Loading...</div>
+    );
   }
 
   return (

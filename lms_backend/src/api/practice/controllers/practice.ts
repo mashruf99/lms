@@ -352,6 +352,55 @@ export default {
 
 
 
+  // GET /practice/topics/:topicId/attempts
+  // Returns all completed attempts for the logged-in user on one topic.
+  // Uses assertApproved (not assertActiveSubscription) — Option B: expired
+  // users can still view their past work.
+  async topicAttempts(ctx: any) {
+    const user = ctx.state.user;
+    await assertApproved(strapi, user);
+
+    const { topicId } = ctx.params;
+    if (!topicId) {
+      throw new ValidationError('topicId is required');
+    }
+
+    const topic = await strapi.db.query('api::topic.topic').findOne({
+      where: { documentId: topicId },
+    });
+
+    if (!topic) {
+      throw new NotFoundError('Topic not found');
+    }
+
+    const attempts = await strapi.db.query('api::attempt.attempt').findMany({
+      where: {
+        user: user.id,
+        topic: topic.id,
+        completedAt: { $notNull: true },
+      },
+      orderBy: { completedAt: 'desc' },
+      limit: 100,
+    });
+
+    const items = attempts.map((a: any) => ({
+      attemptId: a.documentId,
+      type: a.type,
+      score: a.type === 'mcq' ? a.score ?? null : null,
+      correctCount: a.type === 'mcq' ? a.correctCount ?? null : null,
+      totalQuestions: a.totalQuestions ?? null,
+      completedAt: a.completedAt,
+    }));
+
+    ctx.body = {
+      data: {
+        topicId: topic.documentId,
+        topicName: topic.name,
+        totalAttempts: items.length,
+        items,
+      },
+    };
+  },
 
 
 
@@ -411,6 +460,44 @@ export default {
       ? Math.round(topicProgress.reduce((sum, t) => sum + t.bestScore, 0) / topicProgress.length)
       : 0;
 
+
+        // Latest completed attempt per topic — one entry per topic (not per attempt).
+    // Used by the dashboard "Latest by Topic" section.
+    const latestByTopicMap = new Map<string, any>();
+    const attemptCountByTopic = new Map<string, number>();
+
+    for (const a of attempts) {
+      if (!a.completedAt) continue;
+      const key = a.topic?.documentId ?? 'unknown';
+
+      attemptCountByTopic.set(key, (attemptCountByTopic.get(key) ?? 0) + 1);
+
+      const existing = latestByTopicMap.get(key);
+      if (!existing || new Date(a.completedAt) > new Date(existing.completedAt)) {
+        latestByTopicMap.set(key, a);
+      }
+    }
+
+    const latestPerTopic = Array.from(latestByTopicMap.entries())
+      .map(([topicDocId, a]: [string, any]) => ({
+        topicId: topicDocId,
+        topicName: a.topic?.name ?? 'Unknown',
+        attemptId: a.documentId,
+        type: a.type,
+        score: a.type === 'mcq' ? a.score ?? null : null,
+        correctCount: a.type === 'mcq' ? a.correctCount ?? null : null,
+        totalQuestions: a.totalQuestions ?? null,
+        completedAt: a.completedAt,
+        totalAttemptsOnTopic: attemptCountByTopic.get(topicDocId) ?? 1,
+      }))
+      .sort(
+        (a, b) =>
+          new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+      );
+
+
+
+
         // Recent attempts (latest first, capped at 20) — used by the dashboard
     // to show links to review pages. Only completed attempts are included.
     const recentAttempts = [...attempts]
@@ -440,6 +527,7 @@ export default {
         averageMcqScore: overallAvgScore,
         topicProgress,
         recentAttempts,
+        latestPerTopic,
       },
     };
 
