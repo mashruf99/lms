@@ -424,12 +424,22 @@ export default {
     const cqQuestionsSolved = new Set<number>();
     cqAttempts.forEach((a: any) => (a.questionIds || []).forEach((id: number) => cqQuestionsSolved.add(id)));
 
-    // Per-topic breakdown (MCQ) - track the BEST score per topic, not an average of all attempts
-    const topicMap = new Map<string, { name: string; attempts: number; solved: Set<number>; bestScore: number }>();
+   
+
+      const topicMap = new Map<
+      string,
+      { numericId: number; name: string; attempts: number; solved: Set<number>; bestScore: number }
+    >();
     for (const a of mcqAttempts) {
       const key = a.topic?.documentId ?? 'unknown';
       if (!topicMap.has(key)) {
-        topicMap.set(key, { name: a.topic?.name ?? 'Unknown', attempts: 0, solved: new Set(), bestScore: 0 });
+        topicMap.set(key, {
+          numericId: a.topic?.id ?? 0,
+          name: a.topic?.name ?? 'Unknown',
+          attempts: 0,
+          solved: new Set(),
+          bestScore: 0,
+        });
       }
       const entry = topicMap.get(key)!;
       entry.attempts += 1;
@@ -437,24 +447,45 @@ export default {
       (a.questionIds || []).forEach((id: number) => entry.solved.add(id));
     }
 
-    const topicProgress = await Promise.all(
-      Array.from(topicMap.entries()).map(async ([topicDocId, entry]) => {
-        const topicRow = await strapi.db.query('api::topic.topic').findOne({ where: { documentId: topicDocId } });
-        const totalQuestions = topicRow
-          ? await strapi.db.query('api::question.question').count({
-              where: { topic: topicRow.id, correctOptionIndex: { $notNull: true } },
-            })
-          : 0;
-        return {
-          topicId: topicDocId,
-          name: entry.name,
-          attempts: entry.attempts,
-          questionsSolved: entry.solved.size,
-          totalQuestions,
-          bestScore: entry.bestScore,
-        };
-      })
-    );
+
+
+
+
+
+       // One bulk query replaces 2N individual queries (findOne topic + count per topic).
+    // Strapi 5 stores manyToOne relations in link tables, so we join through
+    // questions_topic_lnk to get the topic → question count mapping.
+    const topicNumericIds = Array.from(topicMap.values())
+      .map((t) => t.numericId)
+      .filter((id) => id > 0);
+
+    const questionCountByTopic: Record<number, number> = {};
+
+    if (topicNumericIds.length > 0) {
+      const rows = (await strapi.db
+        .connection('questions_topic_lnk as qtl')
+        .join('questions as q', 'qtl.question_id', 'q.id')
+        .whereIn('qtl.topic_id', topicNumericIds)
+        .whereNotNull('q.correct_option_index')
+        .groupBy('qtl.topic_id')
+        .select('qtl.topic_id')
+        .count('* as count')) as any[];
+
+      for (const row of rows) {
+        questionCountByTopic[Number(row.topic_id)] = Number(row.count);
+      }
+    }
+
+    const topicProgress = Array.from(topicMap.entries()).map(([topicDocId, entry]) => ({
+      topicId: topicDocId,
+      name: entry.name,
+      attempts: entry.attempts,
+      questionsSolved: entry.solved.size,
+      totalQuestions: questionCountByTopic[entry.numericId] ?? 0,
+      bestScore: entry.bestScore,
+    }));
+
+
 
     const overallAvgScore = topicProgress.length
       ? Math.round(topicProgress.reduce((sum, t) => sum + t.bestScore, 0) / topicProgress.length)
