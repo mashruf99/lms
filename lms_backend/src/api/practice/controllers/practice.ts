@@ -67,6 +67,7 @@ export default {
 
     const topic = await strapi.db.query('api::topic.topic').findOne({
       where: { documentId: topicId },
+      select: ['id', 'name'],
     });
     if (!topic) {
       throw new NotFoundError('Topic not found');
@@ -75,23 +76,42 @@ export default {
     const blockSize = type === 'mcq' ? MCQ_BLOCK_SIZE : CQ_BLOCK_SIZE;
     const minutesPerQuestion = type === 'mcq' ? MCQ_MINUTES_PER_QUESTION : CQ_MINUTES_PER_QUESTION;
 
+
+
+
+
+    // Fetch only the fields we return to the client. Omitting `explanation`,
+    // audit columns, and other unused fields saves bytes and Postgres work
+    // on topics with 2,000+ questions.
     const allQuestions =
       type === 'mcq'
         ? await strapi.db.query('api::question.question').findMany({
             where: { topic: topic.id, correctOptionIndex: { $notNull: true } },
+            select: ['id', 'text', 'options', 'citation'],
           })
         : await strapi.db.query('api::written-question.written-question').findMany({
             where: { topic: topic.id },
+            select: ['id', 'text', 'marks', 'citation'],
           });
 
     if (allQuestions.length === 0) {
       throw new ValidationError('No questions available for this topic yet');
     }
 
+
+
+
     // Find questions this user has already seen for this topic+type
+    // Only questionIds is used below. This skips loading the `answers` JSON
+    // blob for every prior attempt — meaningful when a user has dozens of
+    // attempts on a topic.
+
     const priorAttempts = await strapi.db.query('api::attempt.attempt').findMany({
       where: { user: user.id, topic: topic.id, type },
+      select: ['questionIds'],
     });
+
+
     const seenIds = new Set<number>();
     for (const a of priorAttempts) {
       (a.questionIds || []).forEach((id: number) => seenIds.add(id));
@@ -180,9 +200,16 @@ export default {
       totalQuestions: attempt.questionIds.length,
     };
 
+
+
     if (attempt.type === 'mcq') {
+      // Only id + correctOptionIndex are needed for grading. Previously this
+      // fetched full question rows including text/options/explanation/audit
+      // columns — 30 × ~2KB = 60 KB per submit that went u
+
       const questions = await strapi.db.query('api::question.question').findMany({
         where: { id: { $in: attempt.questionIds } },
+        select: ['id', 'correctOptionIndex'],
       });
       let correctCount = 0;
       for (const q of questions) {
