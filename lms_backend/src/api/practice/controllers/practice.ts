@@ -44,52 +44,15 @@ async function assertActiveSubscription(strapi: any, user: any) {
   }
 }
 
+
+
 export default {
-  // GET /practice/topics?type=mcq|cq
-  async topics(ctx: any) {
-    const user = ctx.state.user;
-    await assertApproved(strapi, user);
 
-    const type = ctx.query.type === 'cq' ? 'cq' : 'mcq';
-    const topics = await strapi.db.query('api::topic.topic').findMany({
-      orderBy: { name: 'asc' },
-    });
 
-    const result = await Promise.all(
-      topics.map(async (topic: any) => {
-        const totalQuestions =
-          type === 'mcq'
-            ? await strapi.db.query('api::question.question').count({
-                where: { topic: topic.id, correctOptionIndex: { $notNull: true } },
-              })
-            : await strapi.db.query('api::written-question.written-question').count({
-                where: { topic: topic.id },
-              });
 
-        const attempts = await strapi.db.query('api::attempt.attempt').findMany({
-          where: { user: user.id, topic: topic.id, type },
-        });
 
-        const seenIds = new Set<number>();
-        for (const a of attempts) {
-          (a.questionIds || []).forEach((id: number) => seenIds.add(id));
-        }
 
-        return {
-          topicId: topic.documentId,
-          name: topic.name,
-          totalQuestions,
-          seenCount: seenIds.size,
-          attemptCount: attempts.length,
-          lastAttemptAt: attempts.length
-            ? attempts.reduce((latest: string, a: any) => (a.startedAt > latest ? a.startedAt : latest), attempts[0].startedAt)
-            : null,
-        };
-      })
-    );
 
-    ctx.body = { data: result };
-  },
 
   // POST /practice/start  { topicId, type: 'mcq' | 'cq' }
   async start(ctx: any) {
@@ -184,6 +147,10 @@ export default {
     };
   },
 
+
+
+
+
   // POST /practice/submit  { attemptId, answers }
   async submit(ctx: any) {
     const user = ctx.state.user;
@@ -233,6 +200,9 @@ export default {
 
     ctx.body = { data: { attemptId: updated.documentId } };
   },
+
+
+
 
   // GET /practice/attempt/:id/review
   async review(ctx: any) {
@@ -452,6 +422,7 @@ export default {
 
 
 
+
        // One bulk query replaces 2N individual queries (findOne topic + count per topic).
     // Strapi 5 stores manyToOne relations in link tables, so we join through
     // questions_topic_lnk to get the topic → question count mapping.
@@ -565,5 +536,88 @@ export default {
 
 
 
+  },
+
+  async topics(ctx: any) {
+    const user = ctx.state.user;
+    await assertApproved(strapi, user);
+
+    const type = ctx.query.type === 'cq' ? 'cq' : 'mcq';
+
+    const topics = await strapi.db.query('api::topic.topic').findMany({
+      orderBy: { name: 'asc' },
+    });
+
+    if (topics.length === 0) {
+      ctx.body = { data: [] };
+      return;
+    }
+
+    const topicNumericIds = topics.map((t: any) => t.id);
+    const questionCountByTopic: Record<number, number> = {};
+
+    if (type === 'mcq') {
+      const rows = (await strapi.db
+        .connection('questions_topic_lnk as qtl')
+        .join('questions as q', 'qtl.question_id', 'q.id')
+        .whereIn('qtl.topic_id', topicNumericIds)
+        .whereNotNull('q.correct_option_index')
+        .groupBy('qtl.topic_id')
+        .select('qtl.topic_id')
+        .count('* as count')) as any[];
+
+      for (const row of rows) {
+        questionCountByTopic[Number(row.topic_id)] = Number(row.count);
+      }
+    } else {
+      const rows = (await strapi.db
+        .connection('written_questions_topic_lnk')
+        .whereIn('topic_id', topicNumericIds)
+        .groupBy('topic_id')
+        .select('topic_id')
+        .count('* as count')) as any[];
+
+      for (const row of rows) {
+        questionCountByTopic[Number(row.topic_id)] = Number(row.count);
+      }
+    }
+
+    const allAttempts = await strapi.db.query('api::attempt.attempt').findMany({
+      where: { user: user.id, type },
+      populate: { topic: true },
+    });
+
+    const attemptsByTopic = new Map<string, any[]>();
+    for (const a of allAttempts) {
+      const key = a.topic?.documentId ?? 'unknown';
+      if (!attemptsByTopic.has(key)) attemptsByTopic.set(key, []);
+      attemptsByTopic.get(key)!.push(a);
+    }
+
+    const result = topics.map((topic: any) => {
+      const attempts = attemptsByTopic.get(topic.documentId) ?? [];
+
+      const seenIds = new Set<number>();
+      for (const a of attempts) {
+        (a.questionIds || []).forEach((id: number) => seenIds.add(id));
+      }
+
+      return {
+        topicId: topic.documentId,
+        name: topic.name,
+        totalQuestions: questionCountByTopic[topic.id] ?? 0,
+        seenCount: seenIds.size,
+        attemptCount: attempts.length,
+        lastAttemptAt: attempts.length
+          ? attempts.reduce(
+              (latest: string, a: any) =>
+                a.startedAt > latest ? a.startedAt : latest,
+              attempts[0].startedAt
+            )
+          : null,
+      };
+    });
+
+    ctx.body = { data: result };
   },
 };
