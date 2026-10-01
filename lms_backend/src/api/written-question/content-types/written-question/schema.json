@@ -22,7 +22,7 @@
       "type": "text"
     },
     "citation": {
-      "type": "string"
+      "type": "text"
     },
     "topic": {
       "type": "relation",

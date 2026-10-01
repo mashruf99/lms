@@ -586,7 +586,7 @@ export interface ApiQuestionQuestion extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
-    citation: Schema.Attribute.String;
+    citation: Schema.Attribute.Text;
     correctOptionIndex: Schema.Attribute.Integer;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -651,7 +651,7 @@ export interface ApiWrittenQuestionWrittenQuestion
     draftAndPublish: false;
   };
   attributes: {
-    citation: Schema.Attribute.String;
+    citation: Schema.Attribute.Text;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
