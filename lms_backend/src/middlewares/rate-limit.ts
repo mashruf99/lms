@@ -59,6 +59,10 @@ const generalLimiter = rateLimit({
 
 export default (config: any, { strapi }: { strapi: any }) => {
   return async (ctx: any, next: any) => {
+    if (process.env.BENCHMARK_MODE === 'true') {
+      return next();
+    }
+
     const path = ctx.request.path;
 
     if (path.startsWith('/admin')) {
