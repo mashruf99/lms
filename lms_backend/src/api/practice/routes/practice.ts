@@ -23,6 +23,13 @@ export default {
     },
     {
       method: 'POST',
+      path: '/practice/retry-skipped',
+      handler: 'practice.retrySkipped',
+      config: { policies: [], auth: {} },
+      info: { apiName: 'practice', type: 'content-api' },
+    },
+    {
+      method: 'POST',
       path: '/practice/submit',
       handler: 'practice.submit',
       config: { policies: [], auth: {} },
