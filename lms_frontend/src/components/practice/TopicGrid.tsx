@@ -14,6 +14,8 @@ type TopicSummary = {
   seenCount: number;
   attemptCount: number;
   lastAttemptAt: string | null;
+  isFreeTrial: boolean;
+  hasUsedFreeTrial: boolean;
 };
 
 export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
@@ -27,6 +29,7 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
   // ─── Subscription state ─────────────────────────────────
   const expiry = user?.accessExpiresAt ? new Date(user.accessExpiresAt) : null;
   const subscriptionActive = !!expiry && expiry.getTime() > Date.now();
+  const neverSubscribed = !user?.accessExpiresAt;
 
   useEffect(() => {
     const load = async () => {
@@ -54,7 +57,10 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
     }
 
     const data = await res.json();
-    sessionStorage.setItem(`practice-session-${data.data.attemptId}`, JSON.stringify(data.data));
+    sessionStorage.setItem(
+      `practice-session-${data.data.attemptId}`,
+      JSON.stringify(data.data)
+    );
     router.push(`/practice/session/${data.data.attemptId}`);
   };
 
@@ -70,21 +76,40 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-6">
         {subscriptionActive
           ? 'Choose a topic to start a practice session.'
-          : 'Browse topics below. Renew to start practicing.'}
+          : 'Try a free trial topic below, or subscribe to unlock everything.'}
       </p>
 
-      {/* Subscription warning banner (only when expired) */}
+      {/* Subscription banner */}
       {!subscriptionActive && (
-        <div className="mb-6 px-4 py-3 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-sm text-red-800 dark:text-red-300 flex items-center justify-between gap-4">
+        <div
+          className={`mb-6 px-4 py-3 rounded-md border text-sm flex items-center justify-between gap-4 ${
+            neverSubscribed
+              ? 'border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300'
+              : 'border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-800 dark:text-red-300'
+          }`}
+        >
           <span>
-            <strong>Your subscription has expired.</strong> You can view past
-            attempts but can't start new sessions.
+            {neverSubscribed ? (
+              <>
+                <strong>Free trial available.</strong> Try selected topics to see
+                what the platform offers — no subscription needed.
+              </>
+            ) : (
+              <>
+                <strong>Your subscription has expired.</strong> You can view past
+                attempts but can't start new sessions.
+              </>
+            )}
           </span>
           <Link
             href="/renew"
-            className="underline font-medium text-red-900 dark:text-red-200 whitespace-nowrap"
+            className={`underline font-medium whitespace-nowrap ${
+              neverSubscribed
+                ? 'text-amber-900 dark:text-amber-200'
+                : 'text-red-900 dark:text-red-200'
+            }`}
           >
-            Renew now
+            {neverSubscribed ? 'Subscribe' : 'Renew now'}
           </Link>
         </div>
       )}
@@ -103,22 +128,87 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
                 ? Math.round((t.seenCount / t.totalQuestions) * 100)
                 : 0;
 
+            // ─── Button decision ────────────────────────────────
+            // State priority:
+            //   1. No questions           → disabled "No questions"
+            //   2. Subscription active    → "Start" / "Retry" / "Starting…"
+            //   3. Free trial, unused     → green "Start free trial"
+            //   4. Free trial, used       → "Subscribe to continue" → /renew
+            //   5. Non-free, no sub       → "Subscribe to unlock"   → /renew
+            let button: React.ReactNode;
+
+            if (!hasQuestions) {
+              button = (
+                <button
+                  disabled
+                  className="bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 rounded-md px-4 py-2 text-sm cursor-not-allowed"
+                >
+                  No questions yet
+                </button>
+              );
+            } else if (subscriptionActive) {
+              button = (
+                <button
+                  onClick={() => setPendingTopic(t)}
+                  disabled={startDisabled}
+                  className="bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200 rounded-md px-4 py-2 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isStarting ? 'Starting...' : t.attemptCount > 0 ? 'Retry' : 'Start'}
+                </button>
+              );
+            } else if (t.isFreeTrial && !t.hasUsedFreeTrial) {
+              button = (
+                <button
+                  onClick={() => setPendingTopic(t)}
+                  disabled={startDisabled}
+                  className="bg-emerald-600 text-white hover:bg-emerald-700 rounded-md px-4 py-2 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isStarting ? 'Starting...' : 'Start free trial'}
+                </button>
+              );
+            } else if (t.isFreeTrial && t.hasUsedFreeTrial) {
+              button = (
+                <Link
+                  href="/renew"
+                  className="block text-center bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:hover:bg-amber-500/30 rounded-md px-4 py-2 text-sm transition-colors"
+                >
+                  Subscribe to continue
+                </Link>
+              );
+            } else {
+              button = (
+                <Link
+                  href="/renew"
+                  className="block text-center bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 rounded-md px-4 py-2 text-sm transition-colors"
+                >
+                  Subscribe to unlock
+                </Link>
+              );
+            }
+
             return (
               <div
                 key={t.topicId}
                 className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm dark:shadow-none p-5 flex flex-col justify-between gap-4"
               >
                 <div>
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
-                    {t.name}
-                  </h3>
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                      {t.name}
+                    </h3>
+                    {t.isFreeTrial && (
+                      <span className="text-[10px] uppercase tracking-wide font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 whitespace-nowrap">
+                        Free trial
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {!hasQuestions
+                    {t.totalQuestions === 0
                       ? 'No questions available yet'
                       : `${t.seenCount}/${t.totalQuestions} seen`}
                   </p>
 
-                  {hasQuestions && (
+                  {t.totalQuestions > 0 && (
                     <div
                       className="mt-2 h-1.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden"
                       role="progressbar"
@@ -140,31 +230,7 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
                   )}
                 </div>
 
-                {/* Button — state-dependent */}
-                {subscriptionActive ? (
-                  <button
-                    onClick={() => setPendingTopic(t)}
-                    disabled={startDisabled}
-                    className="bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200 rounded-md px-4 py-2 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {isStarting
-                      ? 'Starting...'
-                      : t.attemptCount > 0
-                      ? 'Retry'
-                      : 'Start'}
-                  </button>
-                ) : (
-                  <Link
-                    href="/renew"
-                    className={`rounded-md px-4 py-2 text-sm transition-colors text-center ${
-                      hasQuestions
-                        ? 'bg-red-600 text-white hover:bg-red-700'
-                        : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 pointer-events-none'
-                    }`}
-                  >
-                    {hasQuestions ? 'Renew to start' : 'Renew'}
-                  </Link>
-                )}
+                {button}
               </div>
             );
           })}
@@ -181,7 +247,7 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
         }
         confirmLabel="Start"
         onConfirm={() => {
-          if (pendingTopic && subscriptionActive) handleStart(pendingTopic.topicId);
+          if (pendingTopic) handleStart(pendingTopic.topicId);
           setPendingTopic(null);
         }}
         onCancel={() => setPendingTopic(null)}

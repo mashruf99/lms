@@ -10,10 +10,15 @@
     "draftAndPublish": false
   },
   "pluginOptions": {},
+
   "attributes": {
     "name": {
       "type": "string",
       "required": true
+    },
+    "isFreeTrial": {
+      "type": "boolean",
+      "default": false
     },
     "description": {
       "type": "text"
