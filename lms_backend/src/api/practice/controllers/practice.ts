@@ -127,7 +127,7 @@ export default {
 
     const seenIds = new Set<number>();
     for (const a of priorAttempts) {
-      (a.questionIds || []).forEach((id: any) => seenIds.add(id));
+      (a.questionIds || []).forEach((id: any) => seenIds.add(Number(id)));
     }
 
     const unseen = allQuestions.filter((q: any) => !seenIds.has(q.id));
@@ -507,6 +507,11 @@ export default {
     };
   },
 
+
+
+
+
+
   // GET /practice/dashboard
   async dashboard(ctx: any) {
     const user = ctx.state.user;
@@ -522,12 +527,12 @@ export default {
 
     const mcqQuestionsSolved = new Set<number>();
     mcqAttempts.forEach((a: any) =>
-      (a.questionIds || []).forEach((id: any) => mcqQuestionsSolved.add(id))
+      (a.questionIds || []).forEach((id: any) => mcqQuestionsSolved.add(Number(id)))
     );
 
     const cqQuestionsSolved = new Set<number>();
     cqAttempts.forEach((a: any) =>
-      (a.questionIds || []).forEach((id: any) => cqQuestionsSolved.add(id))
+      (a.questionIds || []).forEach((id: any) => cqQuestionsSolved.add(Number(id)))
     );
 
     const topicMap = new Map<
@@ -554,14 +559,17 @@ export default {
       const entry = topicMap.get(key)!;
       entry.attempts += 1;
       entry.bestScore = Math.max(entry.bestScore, a.score ?? 0);
-      (a.questionIds || []).forEach((id: any) => entry.solved.add(id));
+      (a.questionIds || []).forEach((id: any) => entry.solved.add(Number(id)));
     }
 
     const topicNumericIds = Array.from(topicMap.values())
       .map((t) => t.numericId)
       .filter((id) => id > 0);
 
-    const questionCountByTopic: Record<number, number> = {};
+    // Bulk fetch CURRENT question IDs per topic. This is the source of truth
+    // for "how many questions exist" AND for filtering out orphan IDs from
+    // old attempts that reference questions no longer linked to the topic.
+    const questionIdsByTopic = new Map<number, Set<number>>();
 
     if (topicNumericIds.length > 0) {
       const rows = (await strapi.db
@@ -569,25 +577,43 @@ export default {
         .join('questions as q', 'qtl.question_id', 'q.id')
         .whereIn('qtl.topic_id', topicNumericIds)
         .whereNotNull('q.correct_option_index')
-        .groupBy('qtl.topic_id')
-        .select('qtl.topic_id')
-        .count('* as count')) as any[];
+        .select('qtl.topic_id', 'qtl.question_id')) as any[];
 
       for (const row of rows) {
-        questionCountByTopic[Number(row.topic_id)] = Number(row.count);
+        const tid = Number(row.topic_id);
+        if (!questionIdsByTopic.has(tid)) questionIdsByTopic.set(tid, new Set());
+        questionIdsByTopic.get(tid)!.add(Number(row.question_id));
       }
     }
 
-    const topicProgress = Array.from(topicMap.entries()).map(
-      ([topicDocId, entry]) => ({
+    // Global pool: union of all current question IDs across the topics this
+    // user has attempted. Used to filter the "MCQ Solved" stat so it doesn't
+    // count questions that no longer exist.
+    const globalMcqPool = new Set<number>();
+    for (const s of questionIdsByTopic.values()) {
+      for (const id of s) globalMcqPool.add(id);
+    }
+
+    const mcqSolvedInPool = new Set<number>();
+    for (const id of mcqQuestionsSolved) {
+      if (globalMcqPool.has(id)) mcqSolvedInPool.add(id);
+    }
+
+    const topicProgress = Array.from(topicMap.entries()).map(([topicDocId, entry]) => {
+      const pool = questionIdsByTopic.get(entry.numericId) ?? new Set<number>();
+      let seenInPool = 0;
+      for (const id of entry.solved) {
+        if (pool.has(id)) seenInPool += 1;
+      }
+      return {
         topicId: topicDocId,
         name: entry.name,
         attempts: entry.attempts,
-        questionsSolved: entry.solved.size,
-        totalQuestions: questionCountByTopic[entry.numericId] ?? 0,
+        questionsSolved: seenInPool,
+        totalQuestions: pool.size,
         bestScore: entry.bestScore,
-      })
-    );
+      };
+    });
 
     const overallAvgScore = topicProgress.length
       ? Math.round(
@@ -652,7 +678,7 @@ export default {
         totalAttempts: attempts.length,
         mcqAttempts: mcqAttempts.length,
         cqAttempts: cqAttempts.length,
-        mcqQuestionsSolved: mcqQuestionsSolved.size,
+        mcqQuestionsSolved: mcqSolvedInPool.size,
         cqQuestionsSolved: cqQuestionsSolved.size,
         averageMcqScore: overallAvgScore,
         topicProgress,
@@ -661,6 +687,10 @@ export default {
       },
     };
   },
+
+
+
+
 
   // GET /practice/topics?type=mcq|cq
   async topics(ctx: any) {
@@ -680,7 +710,9 @@ export default {
     }
 
     const topicNumericIds = topics.map((t: any) => t.id);
-    const questionCountByTopic: Record<number, number> = {};
+
+    // Bulk fetch CURRENT question IDs per topic.
+    const questionIdsByTopic = new Map<number, Set<number>>();
 
     if (type === 'mcq') {
       const rows = (await strapi.db
@@ -688,27 +720,27 @@ export default {
         .join('questions as q', 'qtl.question_id', 'q.id')
         .whereIn('qtl.topic_id', topicNumericIds)
         .whereNotNull('q.correct_option_index')
-        .groupBy('qtl.topic_id')
-        .select('qtl.topic_id')
-        .count('* as count')) as any[];
+        .select('qtl.topic_id', 'qtl.question_id')) as any[];
 
       for (const row of rows) {
-        questionCountByTopic[Number(row.topic_id)] = Number(row.count);
+        const tid = Number(row.topic_id);
+        if (!questionIdsByTopic.has(tid)) questionIdsByTopic.set(tid, new Set());
+        questionIdsByTopic.get(tid)!.add(Number(row.question_id));
       }
     } else {
       const rows = (await strapi.db
         .connection('written_questions_topic_lnk')
         .whereIn('topic_id', topicNumericIds)
-        .groupBy('topic_id')
-        .select('topic_id')
-        .count('* as count')) as any[];
+        .select('topic_id', 'written_question_id')) as any[];
 
       for (const row of rows) {
-        questionCountByTopic[Number(row.topic_id)] = Number(row.count);
+        const tid = Number(row.topic_id);
+        if (!questionIdsByTopic.has(tid)) questionIdsByTopic.set(tid, new Set());
+        questionIdsByTopic.get(tid)!.add(Number(row.written_question_id));
       }
     }
 
-    // Completed attempts for this user+type (used for progress + latest)
+    // Completed attempts for this user+type
     const allAttempts = await strapi.db.query('api::attempt.attempt').findMany({
       where: { user: user.id, type },
       populate: { topic: true },
@@ -721,7 +753,7 @@ export default {
       attemptsByTopic.get(key)!.push(a);
     }
 
-    // Bulk fetch which topics this user has any attempt on (race-safe free-trial check)
+    // Bulk fetch which topics this user has any attempt on
     const usedFreeTrialSet = new Set<number>();
 
     if (topicNumericIds.length > 0) {
@@ -740,17 +772,24 @@ export default {
 
     const result = topics.map((topic: any) => {
       const attempts = attemptsByTopic.get(topic.documentId) ?? [];
+      const pool = questionIdsByTopic.get(topic.id) ?? new Set<number>();
 
       const seenIds = new Set<number>();
       for (const a of attempts) {
-        (a.questionIds || []).forEach((id: any) => seenIds.add(id));
+        (a.questionIds || []).forEach((id: any) => seenIds.add(Number(id)));
+      }
+
+      // Intersect: only count IDs that still belong to this topic
+      let seenInPool = 0;
+      for (const id of seenIds) {
+        if (pool.has(id)) seenInPool += 1;
       }
 
       return {
         topicId: topic.documentId,
         name: topic.name,
-        totalQuestions: questionCountByTopic[topic.id] ?? 0,
-        seenCount: Math.min(seenIds.size, questionCountByTopic[topic.id] ?? 0),
+        totalQuestions: pool.size,
+        seenCount: seenInPool,
         attemptCount: attempts.length,
         lastAttemptAt: attempts.length
           ? attempts.reduce(
