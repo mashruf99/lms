@@ -17,11 +17,13 @@ const NAV_BY_ROLE: Record<string, NavLink[]> = {
     { href: '/admin/review', label: 'Review Answers' },
     { href: '/blog/manage', label: 'Manage Blog' },
     { href: '/blog', label: 'Blog' },
+    { href: '/settings', label: 'Settings' },
   ],
   Student: [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/renew', label: 'Renew' },
     { href: '/blog', label: 'Blog' },
+    { href: '/settings', label: 'Settings' },
   ],
 };
 
