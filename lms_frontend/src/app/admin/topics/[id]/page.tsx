@@ -13,6 +13,7 @@ type Question = {
   options: string[];
   correctOptionIndex: number | null;
   explanation?: string;
+  citation?: string | null;
 };
 
 type Topic = { id: number; documentId: string; name: string };
@@ -36,6 +37,7 @@ function TopicQuestionsContent() {
   const [newOptions, setNewOptions] = useState<string[]>(emptyOptions());
   const [newCorrect, setNewCorrect] = useState<number | null>(null);
   const [newExplanation, setNewExplanation] = useState('');
+  const [newCitation, setNewCitation] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,6 +47,7 @@ function TopicQuestionsContent() {
   const [editOptions, setEditOptions] = useState<string[]>(emptyOptions());
   const [editCorrect, setEditCorrect] = useState<number | null>(null);
   const [editExplanation, setEditExplanation] = useState('');
+  const [editCitation, setEditCitation] = useState('');
   const [saving, setSaving] = useState(false);
 
   const loadData = async (pageNum = 1) => {
@@ -93,6 +96,7 @@ function TopicQuestionsContent() {
           options: filledOptions,
           correctOptionIndex: newCorrect,
           explanation: newExplanation || null,
+          citation: newCitation || null,
           topic: topicId,
         },
       }),
@@ -109,6 +113,7 @@ function TopicQuestionsContent() {
     setNewOptions(emptyOptions());
     setNewCorrect(null);
     setNewExplanation('');
+    setNewCitation('');
     setCreating(false);
     await loadData(1);
   };
@@ -122,14 +127,24 @@ function TopicQuestionsContent() {
   const startEdit = (q: Question) => {
     setEditingId(q.documentId);
     setEditText(q.text);
-    setEditOptions([...q.options, ...emptyOptions(Math.max(0, 4 - q.options.length))].slice(0, Math.max(4, q.options.length)));
+    setEditOptions(
+      [...q.options, ...emptyOptions(Math.max(0, 4 - q.options.length))].slice(
+        0,
+        Math.max(4, q.options.length)
+      )
+    );
     setEditCorrect(q.correctOptionIndex);
     setEditExplanation(q.explanation ?? '');
+    setEditCitation(q.citation ?? '');
   };
 
   const saveEdit = async (documentId: string) => {
     const filledOptions = editOptions.filter((o) => o.trim() !== '');
-    if (filledOptions.length < 2 || editCorrect === null || editCorrect >= filledOptions.length) {
+    if (
+      filledOptions.length < 2 ||
+      editCorrect === null ||
+      editCorrect >= filledOptions.length
+    ) {
       alert('Provide at least 2 options and a valid correct answer selection');
       return;
     }
@@ -143,6 +158,7 @@ function TopicQuestionsContent() {
           options: filledOptions,
           correctOptionIndex: editCorrect,
           explanation: editExplanation || null,
+          citation: editCitation || null,
         },
       }),
     });
@@ -155,7 +171,10 @@ function TopicQuestionsContent() {
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
-      <a href="/admin/topics" className="text-sm underline mb-4 inline-block text-gray-600 dark:text-gray-400">
+      <a
+        href="/admin/topics"
+        className="text-sm underline mb-4 inline-block text-gray-600 dark:text-gray-400"
+      >
         ← Back to Topics
       </a>
       <h1 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
@@ -163,8 +182,13 @@ function TopicQuestionsContent() {
       </h1>
 
       {/* Create form */}
-      <form onSubmit={handleCreate} className="flex flex-col gap-3 mb-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-4">
-        <p className="font-medium text-sm text-gray-700 dark:text-gray-300">Add a new question</p>
+      <form
+        onSubmit={handleCreate}
+        className="flex flex-col gap-3 mb-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-4"
+      >
+        <p className="font-medium text-sm text-gray-700 dark:text-gray-300">
+          Add a new question
+        </p>
         <input
           type="text"
           required
@@ -201,7 +225,16 @@ function TopicQuestionsContent() {
           className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
           rows={2}
         />
-        <p className="text-xs text-gray-500 dark:text-gray-400">Select the radio button next to the correct answer.</p>
+        <input
+          type="text"
+          placeholder="Citation (optional) — e.g. 'BPSC Assistant Engineer; Date: 30 May, 2025'"
+          value={newCitation}
+          onChange={(e) => setNewCitation(e.target.value)}
+          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
+        />
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Select the radio button next to the correct answer.
+        </p>
         <button
           type="submit"
           disabled={creating}
@@ -209,7 +242,9 @@ function TopicQuestionsContent() {
         >
           {creating ? 'Adding...' : 'Add Question'}
         </button>
-        {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}
+        {error && (
+          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+        )}
       </form>
 
       {/* Question list */}
@@ -219,7 +254,10 @@ function TopicQuestionsContent() {
         <ul className="flex flex-col gap-3">
           {questions.map((q) =>
             editingId === q.documentId ? (
-              <li key={q.id} className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl p-4 flex flex-col gap-3">
+              <li
+                key={q.id}
+                className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl p-4 flex flex-col gap-3"
+              >
                 <input
                   type="text"
                   value={editText}
@@ -253,6 +291,13 @@ function TopicQuestionsContent() {
                   className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
                   rows={2}
                 />
+                <input
+                  type="text"
+                  value={editCitation}
+                  onChange={(e) => setEditCitation(e.target.value)}
+                  placeholder="Citation (optional)"
+                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
+                />
                 <div className="flex gap-3">
                   <button
                     onClick={() => saveEdit(q.documentId)}
@@ -261,17 +306,28 @@ function TopicQuestionsContent() {
                   >
                     {saving ? 'Saving...' : 'Save'}
                   </button>
-                  <button onClick={() => setEditingId(null)} className="text-sm underline text-gray-600 dark:text-gray-400">
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="text-sm underline text-gray-600 dark:text-gray-400"
+                  >
                     Cancel
                   </button>
                 </div>
               </li>
             ) : (
-              <li key={q.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm">
+              <li
+                key={q.id}
+                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm"
+              >
                 <div className="flex justify-between items-start">
-                  <p className="font-medium text-gray-900 dark:text-gray-100">{q.text}</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
+                    {q.text}
+                  </p>
                   <div className="flex gap-3 shrink-0 ml-4">
-                    <button onClick={() => startEdit(q)} className="text-sm underline text-gray-700 dark:text-gray-300">
+                    <button
+                      onClick={() => startEdit(q)}
+                      className="text-sm underline text-gray-700 dark:text-gray-300"
+                    >
                       Edit
                     </button>
                     <button
@@ -284,14 +340,28 @@ function TopicQuestionsContent() {
                 </div>
                 <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                   {q.options?.map((opt, i) => (
-                    <li key={i} className={i === q.correctOptionIndex ? 'text-green-600 dark:text-green-400 font-medium' : ''}>
+                    <li
+                      key={i}
+                      className={
+                        i === q.correctOptionIndex
+                          ? 'text-green-600 dark:text-green-400 font-medium'
+                          : ''
+                      }
+                    >
                       {i === q.correctOptionIndex ? '✓ ' : '– '}
                       {opt}
                     </li>
                   ))}
                 </ul>
+                {q.citation && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 italic">
+                    Source: {q.citation}
+                  </p>
+                )}
                 {q.correctOptionIndex === null && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">⚠ No correct answer set yet</p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                    ⚠ No correct answer set yet
+                  </p>
                 )}
               </li>
             )
