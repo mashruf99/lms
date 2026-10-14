@@ -1,5 +1,6 @@
 'use client';
 
+import QuestionText from '@/components/practice/QuestionText';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import PublicHeader from '@/components/layout/PublicHeader';
@@ -116,7 +117,13 @@ export default function PublicTopicsPage() {
                         <ul className="space-y-2">
                           {t.sampleMcq.map((q, i) => (
                             <li key={i} className="text-gray-700 dark:text-gray-300">
-                              <p className="mb-1">{q.text}</p>
+
+
+                              <div className="mb-1">
+                                <QuestionText text={q.text} />
+                              </div>
+
+
                               <ul className="pl-4 text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
                                 {q.options.map((opt, j) => (
                                   <li key={j}>• {opt}</li>
@@ -136,7 +143,7 @@ export default function PublicTopicsPage() {
                         <ul className="space-y-1">
                           {t.sampleCq.map((q, i) => (
                             <li key={i} className="text-gray-700 dark:text-gray-300">
-                              {q.text}
+                              <QuestionText text={q.text} />
                               {q.marks != null && (
                                 <span className="text-xs text-gray-500 dark:text-gray-400">
                                   {' '}

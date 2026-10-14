@@ -1,5 +1,6 @@
 'use client';
 
+import QuestionText from '@/components/practice/QuestionText';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -196,9 +197,12 @@ function ReviewContent() {
               key={item.id}
               className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-5"
             >
-              <p className="font-medium text-gray-900 dark:text-gray-100 mb-1">
-                {idx + 1}. {item.text}
-              </p>
+              <div className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                <span className="mr-1">{idx + 1}.</span>
+                <QuestionText text={item.text} />
+              </div>
+
+
               {item.citation && (
                 <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
                   Source: {item.citation}

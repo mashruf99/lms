@@ -189,14 +189,20 @@ function TopicQuestionsContent() {
         <p className="font-medium text-sm text-gray-700 dark:text-gray-300">
           Add a new question
         </p>
-        <input
-          type="text"
+       
+
+        <textarea
           required
-          placeholder="Question text"
+          placeholder="Question text (markdown supported — use ``` fences for code)"
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
-          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
+          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 font-mono text-sm"
+          rows={5}
         />
+
+
+
+
         {newOptions.map((opt, i) => (
           <div key={i} className="flex items-center gap-2">
             <input
@@ -258,12 +264,20 @@ function TopicQuestionsContent() {
                 key={q.id}
                 className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl p-4 flex flex-col gap-3"
               >
-                <input
-                  type="text"
+               
+
+
+
+               <textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
+                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 font-mono text-sm"
+                  rows={5}
                 />
+
+
+
+
                 {editOptions.map((opt, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <input

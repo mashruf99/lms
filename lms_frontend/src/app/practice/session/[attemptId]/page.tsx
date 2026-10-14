@@ -1,5 +1,6 @@
 'use client';
 
+import QuestionText from '@/components/practice/QuestionText';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -152,7 +153,10 @@ function SessionContent() {
       </div>
 
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-6 mb-6">
-        <p className="font-medium text-gray-900 dark:text-gray-100 mb-1">{current.text}</p>
+                <div className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+          <QuestionText text={current.text} />
+        </div>
+
         {current.citation && (
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">Source: {current.citation}</p>
         )}
