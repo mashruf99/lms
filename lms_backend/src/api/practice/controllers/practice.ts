@@ -2,8 +2,10 @@ import { errors } from '@strapi/utils';
 
 const { ValidationError, ForbiddenError, NotFoundError } = errors;
 
-const MCQ_BLOCK_SIZE = 10;
-const CQ_BLOCK_SIZE = 5;
+const MCQ_BLOCK_SIZE = 10;         // paid MCQ session size
+const CQ_BLOCK_SIZE = 5;           // paid CQ session size
+const MCQ_FREE_BLOCK_SIZE = 5;     // free-trial MCQ size (per topic, per user)
+const CQ_FREE_BLOCK_SIZE = 2;      // free-trial CQ size (per topic, per user)
 const MCQ_MINUTES_PER_QUESTION = 1;
 const CQ_MINUTES_PER_QUESTION = 4;
 
@@ -56,33 +58,24 @@ export default {
 
     const topic = await strapi.db.query('api::topic.topic').findOne({
       where: { documentId: topicId },
-      select: ['id', 'name', 'isFreeTrial'],
+      select: ['id', 'name'],
     });
     if (!topic) {
       throw new NotFoundError('Topic not found');
     }
 
-    // Subscription / free-trial gate
     const hasActive = await strapi
       .service('api::payment.approval')
       .hasActiveSubscription(strapi, user.id);
 
+    // Free-trial gate: unpaid users get one trial per (topic, type).
+    // Once they start a session on a topic+type, that pair is used.
+    // Trying MCQ doesn't block CQ trial on the same topic.
     if (!hasActive) {
-      if (!topic.isFreeTrial) {
-        const err: any = new Error(
-          'Subscribe to unlock this topic. Free trial is available on selected topics.'
-        );
-        err.status = 403;
-        err.name = 'ForbiddenError';
-        throw err;
-      }
-
-      // Race-safe: count any attempt (started or completed) on this topic
-      // by this user. If they've already used their free attempt, block.
       const priorAttemptsOnTopic = await strapi.db
         .query('api::attempt.attempt')
         .count({
-          where: { user: user.id, topic: topic.id },
+          where: { user: user.id, topic: topic.id, type },
         });
 
       if (priorAttemptsOnTopic > 0) {
@@ -95,7 +88,14 @@ export default {
       }
     }
 
-    const blockSize = type === 'mcq' ? MCQ_BLOCK_SIZE : CQ_BLOCK_SIZE;
+    const blockSize = hasActive
+      ? type === 'mcq'
+        ? MCQ_BLOCK_SIZE
+        : CQ_BLOCK_SIZE
+      : type === 'mcq'
+      ? MCQ_FREE_BLOCK_SIZE
+      : CQ_FREE_BLOCK_SIZE;
+
     const minutesPerQuestion =
       type === 'mcq' ? MCQ_MINUTES_PER_QUESTION : CQ_MINUTES_PER_QUESTION;
 
@@ -183,9 +183,6 @@ export default {
   // POST /practice/submit  { attemptId, answers }
   async submit(ctx: any) {
     const user = ctx.state.user;
-    // Session validity is enforced at start time. Once a session exists,
-    // the user is entitled to submit it — even if their subscription
-    // expired in the meantime. This preserves free-trial flow too.
     await assertApproved(strapi, user);
 
     const { attemptId, answers } = ctx.request.body;
@@ -337,13 +334,7 @@ export default {
     };
   },
 
-
-
-
   // POST /practice/retry-skipped  { attemptId }
-  // Creates a new attempt with only the questions that were skipped
-  // in the referenced attempt. Preserves question order. Does not
-  // leak question IDs to the client — the client just names an attempt.
   async retrySkipped(ctx: any) {
     const user = ctx.state.user;
     await assertApproved(strapi, user);
@@ -366,15 +357,14 @@ export default {
       throw new ValidationError('This attempt has not been submitted yet');
     }
 
-    // Gate: subscription active OR free-trial topic.
-    // Note: retry-skipped intentionally does NOT check "used free trial"
-    // — the user is retrying the exact same questions they were already
-    // shown, not accessing new content. Consistent with free-trial intent.
+    // Retry-skipped is only allowed for paid users. Free trial gives
+    // exactly one session per (topic, type) — retrying skipped questions
+    // from that session would effectively be a second session.
     const hasActive = await strapi
       .service('api::payment.approval')
       .hasActiveSubscription(strapi, user.id);
 
-    if (!hasActive && !original.topic?.isFreeTrial) {
+    if (!hasActive) {
       const err: any = new Error(
         'Subscribe to retry skipped questions on this topic.'
       );
@@ -383,13 +373,11 @@ export default {
       throw err;
     }
 
-    // Compute skipped question IDs
     const skippedQids = (original.questionIds || []).filter((qid: number) => {
       const a = original.answers?.[qid];
       if (original.type === 'mcq') {
         return a === null || a === undefined;
       }
-      // CQ — empty or whitespace-only counts as skipped
       return typeof a !== 'string' || a.trim().length === 0;
     });
 
@@ -397,7 +385,6 @@ export default {
       throw new ValidationError('No skipped questions to retry');
     }
 
-    // Fetch the skipped questions (same field selection as /practice/start)
     const questions =
       original.type === 'mcq'
         ? await strapi.db.query('api::question.question').findMany({
@@ -415,7 +402,6 @@ export default {
       throw new ValidationError('Skipped questions are no longer available');
     }
 
-    // Preserve original order
     const byId = new Map(questions.map((q: any) => [q.id, q]));
     const ordered = skippedQids
       .map((id: number) => byId.get(id))
@@ -456,9 +442,6 @@ export default {
       },
     };
   },
-
-
-
 
   // GET /practice/topics/:topicId/attempts
   async topicAttempts(ctx: any) {
@@ -506,11 +489,6 @@ export default {
       },
     };
   },
-
-
-
-
-
 
   // GET /practice/dashboard
   async dashboard(ctx: any) {
@@ -566,9 +544,6 @@ export default {
       .map((t) => t.numericId)
       .filter((id) => id > 0);
 
-    // Bulk fetch CURRENT question IDs per topic. This is the source of truth
-    // for "how many questions exist" AND for filtering out orphan IDs from
-    // old attempts that reference questions no longer linked to the topic.
     const questionIdsByTopic = new Map<number, Set<number>>();
 
     if (topicNumericIds.length > 0) {
@@ -586,9 +561,6 @@ export default {
       }
     }
 
-    // Global pool: union of all current question IDs across the topics this
-    // user has attempted. Used to filter the "MCQ Solved" stat so it doesn't
-    // count questions that no longer exist.
     const globalMcqPool = new Set<number>();
     for (const s of questionIdsByTopic.values()) {
       for (const id of s) globalMcqPool.add(id);
@@ -688,10 +660,6 @@ export default {
     };
   },
 
-
-
-
-
   // GET /practice/topics?type=mcq|cq
   async topics(ctx: any) {
     const user = ctx.state.user;
@@ -701,7 +669,7 @@ export default {
 
     const topics = await strapi.db.query('api::topic.topic').findMany({
       orderBy: { name: 'asc' },
-      select: ['id', 'documentId', 'name', 'isFreeTrial'],
+      select: ['id', 'documentId', 'name'],
     });
 
     if (topics.length === 0) {
@@ -710,10 +678,49 @@ export default {
     }
 
     const topicNumericIds = topics.map((t: any) => t.id);
+    const questionCountByTopic: Record<number, number> = {};
 
-    // Bulk fetch CURRENT question IDs per topic.
+    if (type === 'mcq') {
+      const rows = (await strapi.db
+        .connection('questions_topic_lnk as qtl')
+        .join('questions as q', 'qtl.question_id', 'q.id')
+        .whereIn('qtl.topic_id', topicNumericIds)
+        .whereNotNull('q.correct_option_index')
+        .groupBy('qtl.topic_id')
+        .select('qtl.topic_id')
+        .count('* as count')) as any[];
+
+      for (const row of rows) {
+        questionCountByTopic[Number(row.topic_id)] = Number(row.count);
+      }
+    } else {
+      const rows = (await strapi.db
+        .connection('written_questions_topic_lnk')
+        .whereIn('topic_id', topicNumericIds)
+        .groupBy('topic_id')
+        .select('topic_id')
+        .count('* as count')) as any[];
+
+      for (const row of rows) {
+        questionCountByTopic[Number(row.topic_id)] = Number(row.count);
+      }
+    }
+
+    // Per-user attempts filtered by type
+    const allAttempts = await strapi.db.query('api::attempt.attempt').findMany({
+      where: { user: user.id, type },
+      populate: { topic: true },
+    });
+
+    const attemptsByTopic = new Map<string, any[]>();
+    for (const a of allAttempts) {
+      const key = a.topic?.documentId ?? 'unknown';
+      if (!attemptsByTopic.has(key)) attemptsByTopic.set(key, []);
+      attemptsByTopic.get(key)!.push(a);
+    }
+
+    // Bulk fetch current question IDs per topic (for seen-intersection)
     const questionIdsByTopic = new Map<number, Set<number>>();
-
     if (type === 'mcq') {
       const rows = (await strapi.db
         .connection('questions_topic_lnk as qtl')
@@ -740,36 +747,6 @@ export default {
       }
     }
 
-    // Completed attempts for this user+type
-    const allAttempts = await strapi.db.query('api::attempt.attempt').findMany({
-      where: { user: user.id, type },
-      populate: { topic: true },
-    });
-
-    const attemptsByTopic = new Map<string, any[]>();
-    for (const a of allAttempts) {
-      const key = a.topic?.documentId ?? 'unknown';
-      if (!attemptsByTopic.has(key)) attemptsByTopic.set(key, []);
-      attemptsByTopic.get(key)!.push(a);
-    }
-
-    // Bulk fetch which topics this user has any attempt on
-    const usedFreeTrialSet = new Set<number>();
-
-    if (topicNumericIds.length > 0) {
-      const usedRows = (await strapi.db
-        .connection('attempts_user_lnk as ul')
-        .join('attempts_topic_lnk as tl', 'ul.attempt_id', 'tl.attempt_id')
-        .whereIn('tl.topic_id', topicNumericIds)
-        .where('ul.user_id', user.id)
-        .groupBy('tl.topic_id')
-        .select('tl.topic_id')) as any[];
-
-      for (const row of usedRows) {
-        usedFreeTrialSet.add(Number(row.topic_id));
-      }
-    }
-
     const result = topics.map((topic: any) => {
       const attempts = attemptsByTopic.get(topic.documentId) ?? [];
       const pool = questionIdsByTopic.get(topic.id) ?? new Set<number>();
@@ -779,7 +756,6 @@ export default {
         (a.questionIds || []).forEach((id: any) => seenIds.add(Number(id)));
       }
 
-      // Intersect: only count IDs that still belong to this topic
       let seenInPool = 0;
       for (const id of seenIds) {
         if (pool.has(id)) seenInPool += 1;
@@ -788,7 +764,7 @@ export default {
       return {
         topicId: topic.documentId,
         name: topic.name,
-        totalQuestions: pool.size,
+        totalQuestions: questionCountByTopic[topic.id] ?? 0,
         seenCount: seenInPool,
         attemptCount: attempts.length,
         lastAttemptAt: attempts.length
@@ -798,8 +774,6 @@ export default {
               attempts[0].startedAt
             )
           : null,
-        isFreeTrial: !!topic.isFreeTrial,
-        hasUsedFreeTrial: usedFreeTrialSet.has(topic.id),
       };
     });
 

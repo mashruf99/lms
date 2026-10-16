@@ -14,8 +14,6 @@ type TopicSummary = {
   seenCount: number;
   attemptCount: number;
   lastAttemptAt: string | null;
-  isFreeTrial: boolean;
-  hasUsedFreeTrial: boolean;
 };
 
 export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
@@ -76,13 +74,13 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-6">
         {subscriptionActive
           ? 'Choose a topic to start a practice session.'
-          : 'Try a free trial topic below, or subscribe to unlock everything.'}
+          : 'Try any topic free — subscribe for full access.'}
       </p>
 
       {/* Subscription banner */}
       {!subscriptionActive && (
         <div
-          className={`mb-6 px-4 py-3 rounded-md border text-sm flex items-center justify-between gap-4 ${
+          className={`mb-6 px-4 py-3 rounded-md border text-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 ${
             neverSubscribed
               ? 'border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300'
               : 'border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-800 dark:text-red-300'
@@ -91,8 +89,9 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
           <span>
             {neverSubscribed ? (
               <>
-                <strong>Free trial available.</strong> Try selected topics to see
-                what the platform offers — no subscription needed.
+                <strong>Try any topic for free.</strong> Each topic gives you{' '}
+                {type === 'mcq' ? '5 MCQs' : '2 CQs'} to explore — subscribe for
+                full access.
               </>
             ) : (
               <>
@@ -122,6 +121,7 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
             const hasQuestions = t.totalQuestions > 0;
             const isStarting = startingId === t.topicId;
             const startDisabled = !hasQuestions || startingId !== null;
+            const canStartFreeTrial = !subscriptionActive && t.attemptCount === 0;
 
             const pct =
               t.totalQuestions > 0
@@ -129,12 +129,6 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
                 : 0;
 
             // ─── Button decision ────────────────────────────────
-            // State priority:
-            //   1. No questions           → disabled "No questions"
-            //   2. Subscription active    → "Start" / "Retry" / "Starting…"
-            //   3. Free trial, unused     → green "Start free trial"
-            //   4. Free trial, used       → "Subscribe to continue" → /renew
-            //   5. Non-free, no sub       → "Subscribe to unlock"   → /renew
             let button: React.ReactNode;
 
             if (!hasQuestions) {
@@ -156,7 +150,7 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
                   {isStarting ? 'Starting...' : t.attemptCount > 0 ? 'Retry' : 'Start'}
                 </button>
               );
-            } else if (t.isFreeTrial && !t.hasUsedFreeTrial) {
+            } else if (canStartFreeTrial) {
               button = (
                 <button
                   onClick={() => setPendingTopic(t)}
@@ -166,22 +160,13 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
                   {isStarting ? 'Starting...' : 'Start free trial'}
                 </button>
               );
-            } else if (t.isFreeTrial && t.hasUsedFreeTrial) {
+            } else {
               button = (
                 <Link
                   href="/renew"
                   className="block text-center bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:hover:bg-amber-500/30 rounded-md px-4 py-2 text-sm transition-colors"
                 >
                   Subscribe to continue
-                </Link>
-              );
-            } else {
-              button = (
-                <Link
-                  href="/renew"
-                  className="block text-center bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 rounded-md px-4 py-2 text-sm transition-colors"
-                >
-                  Subscribe to unlock
                 </Link>
               );
             }
@@ -196,7 +181,7 @@ export default function TopicGrid({ type }: { type: 'mcq' | 'cq' }) {
                     <h3 className="font-medium text-gray-900 dark:text-gray-100">
                       {t.name}
                     </h3>
-                    {t.isFreeTrial && (
+                    {canStartFreeTrial && (
                       <span className="text-[10px] uppercase tracking-wide font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 whitespace-nowrap">
                         Free trial
                       </span>
