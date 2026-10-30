@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import AppShell from '@/components/layout/AppShell';
 import { apiFetch } from '@/lib/api';
+import QuestionText from '@/components/practice/QuestionText'; // <-- Added
 
 type WrittenQuestion = {
   id: number;
@@ -147,14 +148,17 @@ function WrittenQuestionsContent() {
 
       <form onSubmit={handleCreate} className="flex flex-col gap-3 mb-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm p-4">
         <p className="font-medium text-sm text-gray-700 dark:text-gray-300">Add a new written question</p>
-        <input
-          type="text"
+        
+        {/* Changed input to textarea */}
+        <textarea
           required
-          placeholder="Question text"
+          placeholder="Question text (markdown supported — use ``` fences for code)"
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
-          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
+          className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 font-mono text-sm"
+          rows={4}
         />
+
         <input
           type="number"
           placeholder="Marks (optional)"
@@ -194,12 +198,15 @@ function WrittenQuestionsContent() {
           {questions.map((q) =>
             editingId === q.documentId ? (
               <li key={q.id} className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-800 rounded-xl p-4 flex flex-col gap-3">
-                <input
-                  type="text"
+                
+                {/* Changed input to textarea */}
+                <textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2"
+                  className="border border-gray-300 dark:border-gray-700 rounded-md px-3 py-2 font-mono text-sm"
+                  rows={4}
                 />
+
                 <input
                   type="number"
                   placeholder="Marks"
@@ -236,10 +243,14 @@ function WrittenQuestionsContent() {
             ) : (
               <li key={q.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 shadow-sm">
                 <div className="flex justify-between items-start mb-2">
-                  <p className="font-medium text-gray-900 dark:text-gray-100">
-                    {q.text} {q.marks != null && <span className="text-xs text-gray-400 dark:text-gray-500">({q.marks} marks)</span>}
-                  </p>
-                  <div className="flex gap-3 shrink-0 ml-4">
+                  
+                  {/* Replaced raw text with QuestionText */}
+                  <div className="font-medium text-gray-900 dark:text-gray-100 flex-1 min-w-0 pr-4">
+                    <QuestionText text={q.text} />
+                    {q.marks != null && <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">({q.marks} marks)</span>}
+                  </div>
+
+                  <div className="flex gap-3 shrink-0">
                     <button onClick={() => startEdit(q)} className="text-sm underline text-gray-700 dark:text-gray-300">
                       Edit
                     </button>
@@ -254,9 +265,11 @@ function WrittenQuestionsContent() {
                 {q.citation && (
                   <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">Source: {q.citation}</p>
                 )}
-                <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap line-clamp-3">
-                  {q.modelAnswer}
-                </p>
+                
+                {/* Replaced raw model answer with QuestionText (scrollable) */}
+                <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-md p-3 max-h-40 overflow-y-auto">
+                  <QuestionText text={q.modelAnswer || ''} />
+                </div>
               </li>
             )
           )}

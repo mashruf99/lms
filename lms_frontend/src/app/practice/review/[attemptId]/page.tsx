@@ -237,13 +237,20 @@ function ReviewContent() {
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                     Your answer:
                   </p>
-                  <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800/50 rounded-md p-3">
-                    {cq.yourAnswer || (
+
+
+                  <div className="text-sm text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 rounded-md p-3">
+                    {cq.yourAnswer ? (
+                      <QuestionText text={cq.yourAnswer} />
+                    ) : (
                       <span className="text-gray-400 dark:text-gray-500">
                         No answer given
                       </span>
                     )}
-                  </p>
+                  </div>
+
+
+
                 </div>
               )}
 
@@ -255,13 +262,21 @@ function ReviewContent() {
                 {isMcq ? 'Explanation' : 'Model Answer'}
               </button>
 
+
+
+
               {expanded && (
-                <div className="mt-2 text-sm text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-500/10 rounded-md p-3 whitespace-pre-wrap">
-                  {isMcq
-                    ? mcq.explanation || 'No explanation provided.'
-                    : cq.modelAnswer || 'No model answer provided.'}
+                <div className="mt-2 text-sm text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-500/10 rounded-md p-3">
+                  {isMcq ? (
+                    <QuestionText text={mcq.explanation || 'No explanation provided.'} />
+                  ) : (
+                    <QuestionText text={cq.modelAnswer || 'No model answer provided.'} />
+                  )}
                 </div>
               )}
+
+
+
             </div>
           );
         })}
